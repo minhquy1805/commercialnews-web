@@ -1,8 +1,19 @@
+import { Card, Typography } from "antd";
+
 export function DashboardPage() {
   return (
-    <main style={{ padding: 24 }}>
-      <h1>Commercial News Admin</h1>
-      <p>Dashboard page is working.</p>
-    </main>
+    <section>
+      <Typography.Title level={2} style={{ marginTop: 0 }}>
+        Dashboard
+      </Typography.Title>
+
+      <Typography.Text type="secondary">
+        Commercial News Admin is working.
+      </Typography.Text>
+
+      <Card style={{ marginTop: 24 }}>
+        Dashboard page is now rendered inside Ant Design Admin Layout.
+      </Card>
+    </section>
   );
 }

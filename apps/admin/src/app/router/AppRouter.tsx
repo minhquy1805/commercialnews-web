@@ -1,9 +1,11 @@
 import { Navigate, Route, Routes } from "react-router-dom";
+import { AdminLayout } from "../layouts/AdminLayout";
 import { DashboardPage } from "../../features/dashboard/pages/DashboardPage";
 import { LoginPage } from "../../features/identity/pages/LoginPage";
 import { ProtectedRoute } from "../../shared/components/ProtectedRoute";
-import { ROUTES } from "../../shared/constants/routes";
 import { PublicOnlyRoute } from "../../shared/components/PublicOnlyRoute";
+import { ROUTES } from "../../shared/constants/routes";
+import { MyProfilePage } from "../../features/identity/pages/MyProfilePage";
 
 export function AppRouter() {
   return (
@@ -23,13 +25,15 @@ export function AppRouter() {
       />
 
       <Route
-        path={ROUTES.DASHBOARD}
         element={
           <ProtectedRoute>
-            <DashboardPage />
+            <AdminLayout />
           </ProtectedRoute>
         }
-      />
+      >
+        <Route path={ROUTES.DASHBOARD} element={<DashboardPage />} />
+        <Route path={ROUTES.PROFILE} element={<MyProfilePage />} />
+      </Route>
     </Routes>
   );
 }
