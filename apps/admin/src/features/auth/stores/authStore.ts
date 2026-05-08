@@ -3,28 +3,24 @@ import { tokenStorage } from "../../../shared/auth/tokenStorage";
 
 type AuthStore = {
   accessToken: string | null;
-  refreshToken: string | null;
   isAuthenticated: boolean;
 
-  setTokens: (accessToken: string, refreshToken: string) => void;
+  setAccessToken: (accessToken: string) => void;
   clearAuth: () => void;
 };
 
 export const useAuthStore = create<AuthStore>((set) => {
   const accessToken = tokenStorage.getAccessToken();
-  const refreshToken = tokenStorage.getRefreshToken();
 
   return {
     accessToken,
-    refreshToken,
     isAuthenticated: Boolean(accessToken),
 
-    setTokens: (newAccessToken, newRefreshToken) => {
-      tokenStorage.setTokens(newAccessToken, newRefreshToken);
+    setAccessToken: (newAccessToken) => {
+      tokenStorage.setAccessToken(newAccessToken);
 
       set({
         accessToken: newAccessToken,
-        refreshToken: newRefreshToken,
         isAuthenticated: true,
       });
     },
@@ -34,7 +30,6 @@ export const useAuthStore = create<AuthStore>((set) => {
 
       set({
         accessToken: null,
-        refreshToken: null,
         isAuthenticated: false,
       });
     },

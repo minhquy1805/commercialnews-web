@@ -16,7 +16,7 @@ const { Title, Text } = Typography;
 export function LoginPage() {
   const navigate = useNavigate();
   const loginMutation = useLogin();
-  const setTokens = useAuthStore((state) => state.setTokens);
+  const setAccessToken = useAuthStore((state) => state.setAccessToken);
 
   const {
     control,
@@ -34,7 +34,7 @@ export function LoginPage() {
     try {
       const result = await loginMutation.mutateAsync(values);
 
-      setTokens(result.accessToken, result.refreshToken);
+      setAccessToken(result.accessToken);
 
       navigate(ROUTES.DASHBOARD);
     } catch {

@@ -1,10 +1,10 @@
 import { useMutation } from "@tanstack/react-query";
-import { identityApi } from "../api/identityApi";
-import type { ChangePasswordRequest } from "../types/identity.types";
+import { authApi } from "../api/authApi";
+import type { ChangePasswordRequest } from "../types/auth.types";
 
 export function useChangePassword() {
   return useMutation({
     mutationFn: (request: ChangePasswordRequest) =>
-      identityApi.changePassword(request),
+      authApi.changePassword(request),
   });
 }

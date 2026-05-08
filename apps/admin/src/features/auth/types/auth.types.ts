@@ -1,3 +1,5 @@
+import type { UserAccountStatus } from "../../../shared/types/userAccountStatus";
+
 export type LoginRequest = {
   email: string;
   password: string;
@@ -8,20 +10,8 @@ export type LoginResponse = {
   publicId: string;
   email: string;
   accessToken: string;
-  refreshToken: string;
   accessTokenExpiresAtUtc: string;
-  refreshTokenExpiresAtUtc: string;
 };
-
-export const USER_ACCOUNT_STATUSES = {
-  UNVERIFIED: "Unverified",
-  ACTIVE: "Active",
-  LOCKED: "Locked",
-  DISABLED: "Disabled",
-} as const;
-
-export type UserAccountStatus =
-  (typeof USER_ACCOUNT_STATUSES)[keyof typeof USER_ACCOUNT_STATUSES];
 
 export type MyProfileResponse = {
   userId: number;
@@ -62,20 +52,29 @@ export type ChangePasswordResponse = {
   passwordChanged: boolean;
 };
 
-export type RefreshTokenRequest = {
-  refreshToken: string;
+export type GetMyLoginHistoryRequest = {
+  succeeded?: boolean | null;
+  fromAttemptedAt?: string | null;
+  toAttemptedAt?: string | null;
+  page?: number;
+  pageSize?: number;
 };
 
-export type RefreshTokenResponse = {
-  userId: number;
-  accessToken: string;
-  refreshToken: string;
-  accessTokenExpiresAtUtc: string;
-  refreshTokenExpiresAtUtc: string;
+export type LoginHistoryItemResponse = {
+  loginId: number | string;
+  succeeded: boolean;
+  failureReason: string | null;
+  attemptedAt: string;
+  ipAddress: string | null;
+  userAgent: string | null;
+  correlationId: string | null;
 };
 
-export type LogoutRequest = {
-  refreshToken: string;
+export type GetMyLoginHistoryResponse = {
+  items: LoginHistoryItemResponse[];
+  page: number;
+  pageSize: number;
+  totalItems: number;
 };
 
 export type LogoutResponse = {
