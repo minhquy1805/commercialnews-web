@@ -95,3 +95,13 @@ a {
 .admin-profile-dropdown .ant-dropdown-menu-item .anticon {
   color: rgba(255, 255, 255, 0.88) !important;
 }
+
+.ant-table-cell-fix-left,
+.ant-table-cell-fix-right {
+  z-index: 1;
+}
+
+.ant-table-thead .ant-table-cell-fix-left,
+.ant-table-thead .ant-table-cell-fix-right {
+  z-index: 2;
+}
