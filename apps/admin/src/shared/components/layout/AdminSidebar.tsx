@@ -53,13 +53,11 @@ const sidebarItems: MenuItem[] = [
 
   getItem("Identity", "identity", <IdcardOutlined />, [
     getItem("Users", ROUTES.IDENTITY_USERS),
-    getItem("Roles", "/identity/roles"),
-    getItem("Permissions", "/identity/permissions"),
   ]),
 
   getItem("Authorization", "authorization", <SafetyCertificateOutlined />, [
-    getItem("Role Permissions", "/authorization/role-permissions"),
-    getItem("User Roles", "/authorization/user-roles"),
+    getItem("Roles", ROUTES.AUTHORIZATION_ROLES),
+    getItem("Permissions", ROUTES.AUTHORIZATION_PERMISSIONS),
   ]),
 
   getItem("Content", "content", <FileTextOutlined />, [

@@ -3,6 +3,7 @@ import {
   CheckCircleOutlined,
   DisconnectOutlined,
   LockOutlined,
+  PlusOutlined,
   StopOutlined,
   UnlockOutlined,
   UserOutlined,
@@ -19,6 +20,7 @@ import {
   Input,
   Modal,
   Popconfirm,
+  Select,
   Skeleton,
   Space,
   Statistic,
@@ -32,8 +34,25 @@ import { type CSSProperties, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ROUTES } from "../../../shared/constants/routes";
 import { USER_ACCOUNT_STATUSES } from "../../../shared/types/userAccountStatus";
+import {
+  AuthorizationAuditUser,
+  type AuthorizationAuditUsersById,
+} from "../../authorization/components/AuthorizationAuditUser";
+import { useAdminRoles } from "../../authorization/hooks/useAdminRoles";
+import {
+  useAdminUserEffectivePermissions,
+  useAdminUserRoles,
+} from "../../authorization/hooks/useAdminUserRoles";
+import { useAssignRoleToUser } from "../../authorization/hooks/useAssignRoleToUser";
+import { useRevokeRoleFromUser } from "../../authorization/hooks/useRevokeRoleFromUser";
+import type {
+  AdminEffectivePermissionItemResponse,
+  AdminUserRoleItemResponse,
+} from "../../authorization/types/adminUserRole.types";
+import { getNumericUserIds } from "../../authorization/utils/authorizationAudit";
 import { useActivateAdminUser } from "../hooks/useActivateAdminUser";
 import { useAdminUserDetail } from "../hooks/useAdminUserDetail";
+import { useAdminUserDetails } from "../hooks/useAdminUserDetails";
 import { useAdminUserLoginHistory } from "../hooks/useAdminUserLoginHistory";
 import { useAdminUserSecuritySummary } from "../hooks/useAdminUserSecuritySummary";
 import { useAdminUserSessions } from "../hooks/useAdminUserSessions";
@@ -57,6 +76,10 @@ type LockUserFormValues = {
   lockedUntilUtc: Dayjs;
   reason?: string;
   revokeSessions: boolean;
+};
+
+type AssignRoleFormValues = {
+  roleId: number;
 };
 
 const wrappingTextStyle: CSSProperties = {
@@ -205,6 +228,201 @@ const loginHistoryColumns: TableProps<AdminUserLoginHistoryItemResponse>["column
     },
   ];
 
+function getUserRoleColumns(
+  usersById: AuthorizationAuditUsersById,
+  isFetchingUsers: boolean,
+  onOpenRole: (roleId: number) => void,
+  onRevokeRole: (roleId: number) => void,
+  isRevokingRole: boolean,
+): TableProps<AdminUserRoleItemResponse>["columns"] {
+  return [
+    {
+      title: "Role",
+      key: "role",
+      width: 320,
+      render: (_, role) => (
+        <div style={{ minWidth: 0, maxWidth: 270 }}>
+          <Button
+            type="link"
+            onClick={() => onOpenRole(role.roleId)}
+            style={{
+              height: "auto",
+              padding: 0,
+              textAlign: "left",
+              whiteSpace: "normal",
+            }}
+          >
+            <Typography.Text strong style={wrappingTextStyle}>
+              {role.displayName}
+            </Typography.Text>
+          </Button>
+          <Typography.Text type="secondary" style={wrappingTextStyle}>
+            {role.name}
+          </Typography.Text>
+        </div>
+      ),
+    },
+    {
+      title: "Description",
+      dataIndex: "description",
+      key: "description",
+      width: 300,
+      render: (description: string | null) => (
+        <Typography.Text style={wrappingTextStyle}>
+          {description || "N/A"}
+        </Typography.Text>
+      ),
+    },
+    {
+      title: "Status",
+      dataIndex: "isActive",
+      key: "isActive",
+      width: 120,
+      render: (isActive: boolean) =>
+        isActive ? (
+          <Tag color="success">Active</Tag>
+        ) : (
+          <Tag color="default">Inactive</Tag>
+        ),
+    },
+    {
+      title: "System",
+      dataIndex: "isSystem",
+      key: "isSystem",
+      width: 120,
+      render: (isSystem: boolean) =>
+        isSystem ? (
+          <Tag color="processing">System</Tag>
+        ) : (
+          <Tag color="default">Custom</Tag>
+        ),
+    },
+    {
+      title: "Assigned at",
+      dataIndex: "assignedAt",
+      key: "assignedAt",
+      width: 190,
+      render: formatDateTime,
+    },
+    {
+      title: "Assigned by",
+      dataIndex: "assignedByUserId",
+      key: "assignedByUserId",
+      width: 220,
+      render: (userId: number | null) => (
+        <AuthorizationAuditUser
+          userId={userId}
+          usersById={usersById}
+          isFetchingUsers={isFetchingUsers}
+          fallbackLabel="System"
+          fallbackDescription="Data initializer"
+        />
+      ),
+    },
+    {
+      title: "Actions",
+      key: "actions",
+      width: 120,
+      render: (_, role) => (
+        <Popconfirm
+          title="Revoke role?"
+          description={`Revoke ${role.displayName} from this user?`}
+          okText="Revoke"
+          okButtonProps={{ danger: true }}
+          cancelText="Cancel"
+          onConfirm={() => onRevokeRole(role.roleId)}
+        >
+          <Button danger loading={isRevokingRole}>
+            Revoke
+          </Button>
+        </Popconfirm>
+      ),
+    },
+  ];
+}
+
+function getEffectivePermissionColumns(
+  onOpenPermission: (permissionId: number) => void,
+): TableProps<AdminEffectivePermissionItemResponse>["columns"] {
+  return [
+    {
+      title: "Permission",
+      key: "permission",
+      width: 320,
+      render: (_, permission) => (
+        <div style={{ minWidth: 0, maxWidth: 270 }}>
+          <Button
+            type="link"
+            onClick={() => onOpenPermission(permission.permissionId)}
+            style={{
+              height: "auto",
+              padding: 0,
+              textAlign: "left",
+              whiteSpace: "normal",
+            }}
+          >
+            <Typography.Text strong style={wrappingTextStyle}>
+              {permission.key}
+            </Typography.Text>
+          </Button>
+          <Typography.Text type="secondary" style={wrappingTextStyle}>
+            {permission.keyNormalized}
+          </Typography.Text>
+        </div>
+      ),
+    },
+    {
+      title: "Module",
+      dataIndex: "module",
+      key: "module",
+      width: 150,
+      render: (module: string) => <Tag color="blue">{module}</Tag>,
+    },
+    {
+      title: "Action",
+      dataIndex: "action",
+      key: "action",
+      width: 140,
+      render: (action: string) => <Tag color="geekblue">{action}</Tag>,
+    },
+    {
+      title: "Description",
+      dataIndex: "description",
+      key: "description",
+      width: 320,
+      render: (description: string | null) => (
+        <Typography.Text style={wrappingTextStyle}>
+          {description || "N/A"}
+        </Typography.Text>
+      ),
+    },
+    {
+      title: "Status",
+      dataIndex: "isActive",
+      key: "isActive",
+      width: 120,
+      render: (isActive: boolean) =>
+        isActive ? (
+          <Tag color="success">Active</Tag>
+        ) : (
+          <Tag color="default">Inactive</Tag>
+        ),
+    },
+    {
+      title: "System",
+      dataIndex: "isSystem",
+      key: "isSystem",
+      width: 120,
+      render: (isSystem: boolean) =>
+        isSystem ? (
+          <Tag color="processing">System</Tag>
+        ) : (
+          <Tag color="default">Custom</Tag>
+        ),
+    },
+  ];
+}
+
 export function UserDetailPage() {
   const { userId } = useParams();
   const parsedUserId = Number(userId);
@@ -213,8 +431,10 @@ export function UserDetailPage() {
     : null;
   const [disableForm] = Form.useForm<DisableUserFormValues>();
   const [lockForm] = Form.useForm<LockUserFormValues>();
+  const [assignRoleForm] = Form.useForm<AssignRoleFormValues>();
   const [isDisableModalOpen, setIsDisableModalOpen] = useState(false);
   const [isLockModalOpen, setIsLockModalOpen] = useState(false);
+  const [isAssignRoleModalOpen, setIsAssignRoleModalOpen] = useState(false);
   const [loginHistoryPage, setLoginHistoryPage] = useState(1);
   const [loginHistoryPageSize, setLoginHistoryPageSize] = useState(10);
   const navigate = useNavigate();
@@ -223,6 +443,14 @@ export function UserDetailPage() {
   const userDetailQuery = useAdminUserDetail(selectedUserId);
   const securitySummaryQuery = useAdminUserSecuritySummary(selectedUserId);
   const sessionsQuery = useAdminUserSessions(selectedUserId);
+  const userRolesQuery = useAdminUserRoles(selectedUserId);
+  const userEffectivePermissionsQuery =
+    useAdminUserEffectivePermissions(selectedUserId);
+  const assignableRolesQuery = useAdminRoles({
+    page: 1,
+    pageSize: 100,
+    isActive: true,
+  });
   const loginHistoryQuery = useAdminUserLoginHistory({
     userId: selectedUserId ?? 0,
     page: loginHistoryPage,
@@ -234,7 +462,14 @@ export function UserDetailPage() {
   const unlockUserMutation = useUnlockAdminUser();
   const markEmailVerifiedMutation = useMarkAdminUserEmailVerified();
   const revokeSessionsMutation = useRevokeAdminUserSessions();
+  const assignRoleMutation = useAssignRoleToUser();
+  const revokeRoleMutation = useRevokeRoleFromUser();
   const user = userDetailQuery.data;
+  const roleAssignmentAuditUsersQuery = useAdminUserDetails(
+    getNumericUserIds(
+      userRolesQuery.data?.roles.map((role) => role.assignedByUserId) ?? [],
+    ),
+  );
   const userState = user ? getUserState(user) : null;
   const isActionPending =
     activateUserMutation.isPending ||
@@ -243,6 +478,27 @@ export function UserDetailPage() {
     unlockUserMutation.isPending ||
     markEmailVerifiedMutation.isPending ||
     revokeSessionsMutation.isPending;
+  const assignedRoleIds = new Set(
+    userRolesQuery.data?.roles.map((role) => role.roleId) ?? [],
+  );
+  const assignableRoleOptions =
+    assignableRolesQuery.data?.items
+      .filter((role) => !assignedRoleIds.has(role.roleId))
+      .map((role) => ({
+        label: `${role.displayName} (${role.name})`,
+        value: role.roleId,
+      })) ?? [];
+  const userRoleColumns = getUserRoleColumns(
+    roleAssignmentAuditUsersQuery.usersById,
+    roleAssignmentAuditUsersQuery.isFetching,
+    (roleId) => navigate(`${ROUTES.AUTHORIZATION_ROLES}/${roleId}`),
+    handleRevokeRole,
+    revokeRoleMutation.isPending,
+  );
+  const effectivePermissionColumns = getEffectivePermissionColumns(
+    (permissionId) =>
+      navigate(`${ROUTES.AUTHORIZATION_PERMISSIONS}/${permissionId}`),
+  );
 
   async function runUserAction(
     action: () => Promise<unknown>,
@@ -317,6 +573,16 @@ export function UserDetailPage() {
     lockForm.resetFields();
   }
 
+  function openAssignRoleModal() {
+    assignRoleForm.resetFields();
+    setIsAssignRoleModalOpen(true);
+  }
+
+  function closeAssignRoleModal() {
+    setIsAssignRoleModalOpen(false);
+    assignRoleForm.resetFields();
+  }
+
   async function handleLockUser() {
     if (!selectedUserId) {
       return;
@@ -338,6 +604,43 @@ export function UserDetailPage() {
     if (completed) {
       closeLockModal();
     }
+  }
+
+  async function handleAssignRole() {
+    if (!selectedUserId) {
+      return;
+    }
+
+    const values = await assignRoleForm.validateFields();
+    const completed = await runUserAction(
+      () =>
+        assignRoleMutation.mutateAsync({
+          userId: selectedUserId,
+          roleId: values.roleId,
+        }),
+      "Role assigned",
+      "Could not assign role.",
+    );
+
+    if (completed) {
+      closeAssignRoleModal();
+    }
+  }
+
+  async function handleRevokeRole(roleId: number) {
+    if (!selectedUserId) {
+      return;
+    }
+
+    await runUserAction(
+      () =>
+        revokeRoleMutation.mutateAsync({
+          userId: selectedUserId,
+          roleId,
+        }),
+      "Role revoked",
+      "Could not revoke role.",
+    );
   }
 
   if (!selectedUserId) {
@@ -481,6 +784,68 @@ export function UserDetailPage() {
             Security summary is not available.
           </Typography.Text>
         )}
+      </Card>
+
+      <Card
+        title="Roles"
+        extra={
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={openAssignRoleModal}
+          >
+            Assign role
+          </Button>
+        }
+        style={{ marginTop: 16 }}
+      >
+        <Table<AdminUserRoleItemResponse>
+          bordered
+          size="small"
+          rowKey={(role) => String(role.roleId)}
+          columns={userRoleColumns}
+          dataSource={userRolesQuery.data?.roles ?? []}
+          loading={
+            userRolesQuery.isFetching ||
+            roleAssignmentAuditUsersQuery.isFetching ||
+            revokeRoleMutation.isPending
+          }
+          scroll={{ x: 1390 }}
+          pagination={false}
+          locale={{
+            emptyText: userRolesQuery.isError
+              ? "Could not load user roles."
+              : "No roles assigned.",
+          }}
+          style={{
+            border: "1px solid #f0f0f0",
+            borderRadius: 8,
+            overflow: "hidden",
+          }}
+        />
+      </Card>
+
+      <Card title="Effective permissions" style={{ marginTop: 16 }}>
+        <Table<AdminEffectivePermissionItemResponse>
+          bordered
+          size="small"
+          rowKey={(permission) => String(permission.permissionId)}
+          columns={effectivePermissionColumns}
+          dataSource={userEffectivePermissionsQuery.data?.permissions ?? []}
+          loading={userEffectivePermissionsQuery.isFetching}
+          scroll={{ x: 1170 }}
+          pagination={false}
+          locale={{
+            emptyText: userEffectivePermissionsQuery.isError
+              ? "Could not load effective permissions."
+              : "No effective permissions found.",
+          }}
+          style={{
+            border: "1px solid #f0f0f0",
+            borderRadius: 8,
+            overflow: "hidden",
+          }}
+        />
       </Card>
 
       <Card title="Sessions" style={{ marginTop: 16 }}>
@@ -763,6 +1128,39 @@ export function UserDetailPage() {
 
           <Form.Item name="revokeSessions" valuePropName="checked">
             <Checkbox>Revoke active sessions</Checkbox>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <Modal
+        title="Assign role"
+        open={isAssignRoleModalOpen}
+        okText="Assign"
+        confirmLoading={assignRoleMutation.isPending}
+        onOk={handleAssignRole}
+        onCancel={closeAssignRoleModal}
+        destroyOnHidden
+      >
+        <Form form={assignRoleForm} layout="vertical" requiredMark={false}>
+          <Form.Item
+            label="Role"
+            name="roleId"
+            rules={[{ required: true, message: "Role is required." }]}
+          >
+            <Select
+              showSearch
+              loading={assignableRolesQuery.isFetching}
+              notFoundContent={
+                assignableRolesQuery.isFetching
+                  ? "Loading roles..."
+                  : assignableRolesQuery.isError
+                    ? "Could not load roles."
+                    : "No unassigned active roles."
+              }
+              options={assignableRoleOptions}
+              optionFilterProp="label"
+              placeholder="Select role"
+            />
           </Form.Item>
         </Form>
       </Modal>

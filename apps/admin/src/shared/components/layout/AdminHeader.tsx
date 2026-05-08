@@ -82,7 +82,7 @@ export function AdminHeader() {
       style={{
         position: "sticky",
         top: 0,
-        zIndex: 10,
+        zIndex: 1000,
         width: "100%",
         display: "flex",
         alignItems: "center",

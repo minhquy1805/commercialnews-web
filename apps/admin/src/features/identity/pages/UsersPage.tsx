@@ -13,6 +13,8 @@ import {
 import { type CSSProperties, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "../../../shared/constants/routes";
+import { useAdminUserRolesList } from "../../authorization/hooks/useAdminUserRoles";
+import type { AdminUserRoleItemResponse } from "../../authorization/types/adminUserRole.types";
 import { useAdminUsers } from "../hooks/useAdminUsers";
 import type { AdminUserListItemResponse } from "../types/adminUser.types";
 import { USER_ACCOUNT_STATUSES } from "../../../shared/types/userAccountStatus";
@@ -56,83 +58,144 @@ function getStatusColor(status: string) {
   }
 }
 
-const userColumns: TableProps<AdminUserListItemResponse>["columns"] = [
-  {
-    title: "User",
-    key: "user",
-    fixed: "left",
-    width: 300,
-    render: (_, user) => (
-      <Space align="start" size={12}>
-        <Avatar
-          src={user.avatarUrl ?? undefined}
-          icon={!user.avatarUrl ? <UserOutlined /> : undefined}
-          style={{ flexShrink: 0 }}
-        />
+function renderUserRoles(
+  userId: number,
+  rolesByUserId: Map<number, AdminUserRoleItemResponse[]>,
+  isFetchingRoles: boolean,
+  isRolesError: boolean,
+) {
+  const roles = rolesByUserId.get(userId);
 
-        <div style={{ minWidth: 0, maxWidth: 220 }}>
-          <Typography.Text strong style={wrappingTextStyle}>
-            {user.fullName}
-          </Typography.Text>
-          <Typography.Text type="secondary" style={wrappingTextStyle}>
-            {user.email}
-          </Typography.Text>
-        </div>
-      </Space>
-    ),
-  },
-  {
-    title: "Status",
-    dataIndex: "status",
-    key: "status",
-    width: 130,
-    render: (status: string) => (
-      <Tag color={getStatusColor(status)}>{status}</Tag>
-    ),
-  },
-  {
-    title: "Email",
-    dataIndex: "isEmailVerified",
-    key: "isEmailVerified",
-    width: 130,
-    render: (isEmailVerified: boolean) =>
-      isEmailVerified ? (
-        <Tag color="success">Verified</Tag>
-      ) : (
-        <Tag color="warning">Unverified</Tag>
+  if (!roles) {
+    return (
+      <Typography.Text type="secondary" style={wrappingTextStyle}>
+        {isFetchingRoles
+          ? "Loading..."
+          : isRolesError
+            ? "Could not load roles."
+            : "N/A"}
+      </Typography.Text>
+    );
+  }
+
+  if (roles.length === 0) {
+    return (
+      <Typography.Text type="secondary" style={wrappingTextStyle}>
+        No roles
+      </Typography.Text>
+    );
+  }
+
+  return (
+    <Space size={[4, 4]} wrap>
+      {roles.slice(0, 3).map((role) => (
+        <Tag
+          key={role.roleId}
+          color={role.isActive ? "processing" : "default"}
+        >
+          {role.displayName || role.name}
+        </Tag>
+      ))}
+      {roles.length > 3 && <Tag>+{roles.length - 3}</Tag>}
+    </Space>
+  );
+}
+
+function getUserColumns(
+  rolesByUserId: Map<number, AdminUserRoleItemResponse[]>,
+  isFetchingRoles: boolean,
+  isRolesError: boolean,
+): TableProps<AdminUserListItemResponse>["columns"] {
+  return [
+    {
+      title: "User",
+      key: "user",
+      fixed: "left",
+      width: 300,
+      render: (_, user) => (
+        <Space align="start" size={12}>
+          <Avatar
+            src={user.avatarUrl ?? undefined}
+            icon={!user.avatarUrl ? <UserOutlined /> : undefined}
+            style={{ flexShrink: 0 }}
+          />
+
+          <div style={{ minWidth: 0, maxWidth: 220 }}>
+            <Typography.Text strong style={wrappingTextStyle}>
+              {user.fullName}
+            </Typography.Text>
+            <Typography.Text type="secondary" style={wrappingTextStyle}>
+              {user.email}
+            </Typography.Text>
+          </div>
+        </Space>
       ),
-  },
-  {
-    title: "Created at",
-    dataIndex: "createdAt",
-    key: "createdAt",
-    width: 190,
-    render: formatDateTime,
-  },
-  {
-    title: "Last login",
-    dataIndex: "lastLoginAt",
-    key: "lastLoginAt",
-    width: 190,
-    render: formatDateTime,
-  },
-  {
-    title: "Locked until",
-    dataIndex: "lockedUntil",
-    key: "lockedUntil",
-    width: 190,
-    render: formatDateTime,
-  },
-  {
-    title: "Public ID",
-    dataIndex: "publicId",
-    key: "publicId",
-    width: 260,
-    render: (publicId: string) => (
-      <Typography.Text style={wrappingTextStyle}>{publicId}</Typography.Text>
-    ),
-  },
-];
+    },
+    {
+      title: "Status",
+      dataIndex: "status",
+      key: "status",
+      width: 130,
+      render: (status: string) => (
+        <Tag color={getStatusColor(status)}>{status}</Tag>
+      ),
+    },
+    {
+      title: "Email",
+      dataIndex: "isEmailVerified",
+      key: "isEmailVerified",
+      width: 130,
+      render: (isEmailVerified: boolean) =>
+        isEmailVerified ? (
+          <Tag color="success">Verified</Tag>
+        ) : (
+          <Tag color="warning">Unverified</Tag>
+        ),
+    },
+    {
+      title: "Roles",
+      key: "roles",
+      width: 260,
+      render: (_, user) =>
+        renderUserRoles(
+          user.userId,
+          rolesByUserId,
+          isFetchingRoles,
+          isRolesError,
+        ),
+    },
+    {
+      title: "Created at",
+      dataIndex: "createdAt",
+      key: "createdAt",
+      width: 190,
+      render: formatDateTime,
+    },
+    {
+      title: "Last login",
+      dataIndex: "lastLoginAt",
+      key: "lastLoginAt",
+      width: 190,
+      render: formatDateTime,
+    },
+    {
+      title: "Locked until",
+      dataIndex: "lockedUntil",
+      key: "lockedUntil",
+      width: 190,
+      render: formatDateTime,
+    },
+    {
+      title: "Public ID",
+      dataIndex: "publicId",
+      key: "publicId",
+      width: 260,
+      render: (publicId: string) => (
+        <Typography.Text style={wrappingTextStyle}>{publicId}</Typography.Text>
+      ),
+    },
+  ];
+}
 
 export function UsersPage() {
   const navigate = useNavigate();
@@ -154,6 +217,14 @@ export function UsersPage() {
     page,
     pageSize,
   });
+  const userRolesQuery = useAdminUserRolesList(
+    usersQuery.data?.items.map((user) => user.userId) ?? [],
+  );
+  const userColumns = getUserColumns(
+    userRolesQuery.rolesByUserId,
+    userRolesQuery.isFetching,
+    userRolesQuery.isError,
+  );
 
   return (
     <section>
@@ -218,8 +289,8 @@ export function UsersPage() {
           rowKey={(user) => String(user.userId)}
           columns={userColumns}
           dataSource={usersQuery.data?.items ?? []}
-          loading={usersQuery.isFetching}
-          scroll={{ x: 1390 }}
+          loading={usersQuery.isFetching || userRolesQuery.isFetching}
+          scroll={{ x: 1650 }}
           locale={{
             emptyText: usersQuery.isError
               ? "Could not load users."
