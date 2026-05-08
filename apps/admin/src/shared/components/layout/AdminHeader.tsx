@@ -18,10 +18,10 @@ import {
   Tooltip,
 } from "antd";
 import { useNavigate } from "react-router-dom";
-import { useMyProfile } from "../../../features/identity/hooks/useMyProfile";
-import { useLogout } from "../../../features/identity/hooks/useLogout";
+import { useMyProfile } from "../../../features/auth/hooks/useMyProfile";
+import { useLogout } from "../../../features/auth/hooks/useLogout";
 import { ROUTES } from "../../constants/routes";
-import { useAuthStore } from "../../../features/identity/stores/authStore";
+import { useAuthStore } from "../../../features/auth/stores/authStore";
 import { useQueryClient } from "@tanstack/react-query";
 
 const { Header } = Layout;
@@ -50,15 +50,13 @@ export function AdminHeader() {
   const { notification } = App.useApp();
   const queryClient = useQueryClient();
 
-  const refreshToken = useAuthStore((state) => state.refreshToken);
+  
   const clearAuth = useAuthStore((state) => state.clearAuth);
   const logoutMutation = useLogout();
 
   const handleLogout = async () => {
     try {
-      if (refreshToken) {
-        await logoutMutation.mutateAsync({ refreshToken });
-      }
+      await logoutMutation.mutateAsync();
 
       notification.success({
         message: "Logged out",

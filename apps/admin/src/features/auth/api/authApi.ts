@@ -2,24 +2,23 @@ import { httpClient } from "../../../shared/api/httpClient";
 import type {
   ChangePasswordRequest,
   ChangePasswordResponse,
+  GetMyLoginHistoryRequest,
+  GetMyLoginHistoryResponse,
   LoginRequest,
   LoginResponse,
   LogoutAllSessionsResponse,
-  LogoutRequest,
   LogoutResponse,
   MyProfileResponse,
-  RefreshTokenRequest,
-  RefreshTokenResponse,
   UpdateMyProfileRequest,
   UpdateMyProfileResponse,
-} from "../types/identity.types";
+} from "../types/auth.types";
 
-const IDENTITY_BASE_URL = "/api/v1/identity";
+const AUTH_BASE_URL = "/api/v1/auth";
 
-export const identityApi = {
+export const authApi = {
   async login(request: LoginRequest): Promise<LoginResponse> {
     const response = await httpClient.post<LoginResponse>(
-      `${IDENTITY_BASE_URL}/login`,
+      `${AUTH_BASE_URL}/login`,
       request,
     );
 
@@ -28,7 +27,7 @@ export const identityApi = {
 
   async getMyProfile(): Promise<MyProfileResponse> {
     const response = await httpClient.get<MyProfileResponse>(
-      `${IDENTITY_BASE_URL}/me`,
+      `${AUTH_BASE_URL}/me`,
     );
 
     return response.data;
@@ -38,7 +37,7 @@ export const identityApi = {
     request: UpdateMyProfileRequest,
   ): Promise<UpdateMyProfileResponse> {
     const response = await httpClient.put<UpdateMyProfileResponse>(
-      `${IDENTITY_BASE_URL}/me`,
+      `${AUTH_BASE_URL}/me`,
       request,
     );
 
@@ -49,28 +48,29 @@ export const identityApi = {
     request: ChangePasswordRequest,
   ): Promise<ChangePasswordResponse> {
     const response = await httpClient.post<ChangePasswordResponse>(
-      `${IDENTITY_BASE_URL}/change-password`,
+      `${AUTH_BASE_URL}/change-password`,
       request,
     );
 
     return response.data;
   },
 
-  async refreshToken(
-    request: RefreshTokenRequest,
-  ): Promise<RefreshTokenResponse> {
-    const response = await httpClient.post<RefreshTokenResponse>(
-      `${IDENTITY_BASE_URL}/refresh-token`,
-      request,
+  async getMyLoginHistory(
+    request: GetMyLoginHistoryRequest = {},
+  ): Promise<GetMyLoginHistoryResponse> {
+    const response = await httpClient.get<GetMyLoginHistoryResponse>(
+      `${AUTH_BASE_URL}/me/login-history`,
+      {
+        params: request,
+      },
     );
 
     return response.data;
   },
 
-  async logout(request: LogoutRequest): Promise<LogoutResponse> {
+  async logout(): Promise<LogoutResponse> {
     const response = await httpClient.post<LogoutResponse>(
-      `${IDENTITY_BASE_URL}/logout`,
-      request,
+      `${AUTH_BASE_URL}/logout`,
     );
 
     return response.data;
@@ -78,10 +78,9 @@ export const identityApi = {
 
   async logoutAllSessions(): Promise<LogoutAllSessionsResponse> {
     const response = await httpClient.post<LogoutAllSessionsResponse>(
-      `${IDENTITY_BASE_URL}/logout-all-sessions`,
+      `${AUTH_BASE_URL}/logout-all-sessions`,
     );
 
     return response.data;
   },
 };
-

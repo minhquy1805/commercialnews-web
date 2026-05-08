@@ -1,8 +1,8 @@
 import { useMutation } from "@tanstack/react-query";
-import { identityApi } from "../api/identityApi";
+import { authApi } from "../api/authApi";
 
 export function useLogoutAllSessions() {
   return useMutation({
-    mutationFn: identityApi.logoutAllSessions,
+    mutationFn: authApi.logoutAllSessions,
   });
 }

@@ -1,4 +1,8 @@
-import { LockOutlined, LogoutOutlined, UserOutlined } from "@ant-design/icons";
+import {
+  LockOutlined,
+  LogoutOutlined,
+  UserOutlined,
+} from "@ant-design/icons";
 import {
   App,
   Avatar,
@@ -8,26 +12,32 @@ import {
   Divider,
   Form,
   Input,
+  InputNumber,
   Popconfirm,
   Skeleton,
+  Slider,
   Space,
   Tag,
+  Table,
+  type TableProps,
   Typography,
 } from "antd";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useChangePassword } from "../hooks/useChangePassword";
+import { useMyLoginHistory } from "../hooks/useMyLoginHistory";
 import { useMyProfile } from "../hooks/useMyProfile";
 import { useUpdateMyProfile } from "../hooks/useUpdateMyProfile";
 import {
-  USER_ACCOUNT_STATUSES,
   type ChangePasswordRequest,
+  type LoginHistoryItemResponse,
   type UpdateMyProfileRequest,
-} from "../types/identity.types";
+} from "../types/auth.types";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLogoutAllSessions } from "../hooks/useLogoutAllSessions";
 import { useAuthStore } from "../stores/authStore";
 import { ROUTES } from "../../../shared/constants/routes";
+import { USER_ACCOUNT_STATUSES } from "../../../shared/types/userAccountStatus";
 
 type ProfileFormValues = {
   fullName: string;
@@ -55,12 +65,77 @@ function getStatusColor(status: string) {
   }
 }
 
+function formatDateTime(value: string | null) {
+  if (!value) {
+    return "N/A";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toLocaleString();
+}
+
+const loginHistoryColumns: TableProps<LoginHistoryItemResponse>["columns"] = [
+  {
+    title: "Status",
+    dataIndex: "succeeded",
+    key: "succeeded",
+    width: 110,
+    render: (succeeded: boolean) =>
+      succeeded ? (
+        <Tag color="success">Success</Tag>
+      ) : (
+        <Tag color="error">Failed</Tag>
+      ),
+  },
+  {
+    title: "Attempted at",
+    dataIndex: "attemptedAt",
+    key: "attemptedAt",
+    width: 190,
+    render: formatDateTime,
+  },
+  {
+    title: "IP address",
+    dataIndex: "ipAddress",
+    key: "ipAddress",
+    width: 150,
+    render: (value: string | null) => value ?? "N/A",
+  },
+  {
+    title: "Failure reason",
+    dataIndex: "failureReason",
+    key: "failureReason",
+    width: 180,
+    render: (value: string | null) => value ?? "N/A",
+  },
+  {
+    title: "User agent",
+    dataIndex: "userAgent",
+    key: "userAgent",
+    ellipsis: true,
+    render: (value: string | null) => value ?? "N/A",
+  },
+];
+
 export function MyProfilePage() {
   const [profileForm] = Form.useForm<ProfileFormValues>();
   const [passwordForm] = Form.useForm<ChangePasswordFormValues>();
+  const [avatarRotation, setAvatarRotation] = useState(0);
+  const [failedAvatarUrl, setFailedAvatarUrl] = useState<string | null>(null);
+  const [loginHistoryPage, setLoginHistoryPage] = useState(1);
+  const [loginHistoryPageSize, setLoginHistoryPageSize] = useState(10);
   const { notification } = App.useApp();
 
   const { data: profile, isLoading } = useMyProfile();
+  const loginHistoryQuery = useMyLoginHistory({
+    page: loginHistoryPage,
+    pageSize: loginHistoryPageSize,
+  });
   const updateProfileMutation = useUpdateMyProfile();
   const changePasswordMutation = useChangePassword();
 
@@ -68,6 +143,11 @@ export function MyProfilePage() {
   const queryClient = useQueryClient();
   const clearAuth = useAuthStore((state) => state.clearAuth);
   const logoutAllSessionsMutation = useLogoutAllSessions();
+  const avatarUrl = Form.useWatch("avatarUrl", profileForm);
+  const previewAvatarUrl = avatarUrl?.trim();
+  const canShowAvatarPreview = Boolean(
+    previewAvatarUrl && failedAvatarUrl !== previewAvatarUrl,
+  );
 
   useEffect(() => {
     if (!profile) {
@@ -258,6 +338,66 @@ export function MyProfilePage() {
             <Input placeholder="https://example.com/avatar.png" allowClear />
           </Form.Item>
 
+          <Form.Item label="Avatar preview">
+            <Space align="center" size={16} wrap>
+              <div
+                style={{
+                  width: 112,
+                  height: 112,
+                  display: "grid",
+                  placeItems: "center",
+                  overflow: "hidden",
+                  border: "1px solid #d9d9d9",
+                  borderRadius: 8,
+                  background: "#f5f5f5",
+                }}
+              >
+                {canShowAvatarPreview ? (
+                  <img
+                    src={previewAvatarUrl}
+                    alt=""
+                    onError={() => setFailedAvatarUrl(previewAvatarUrl ?? null)}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                      transform: `rotate(${avatarRotation}deg)`,
+                      transition: "transform 160ms ease",
+                    }}
+                  />
+                ) : (
+                  <Avatar size={72} icon={<UserOutlined />} />
+                )}
+              </div>
+
+              <div style={{ width: 280, maxWidth: "100%" }}>
+                <Typography.Text strong>Rotation</Typography.Text>
+
+                <Space.Compact style={{ width: "100%", marginTop: 8 }}>
+                  <Slider
+                    min={0}
+                    max={359}
+                    value={avatarRotation}
+                    onChange={setAvatarRotation}
+                    tooltip={{
+                      formatter: (value) => `${value ?? 0} deg`,
+                    }}
+                    style={{ flex: 1, marginInline: 8 }}
+                  />
+
+                  <InputNumber
+                    min={0}
+                    max={359}
+                    value={avatarRotation}
+                    onChange={(value) => setAvatarRotation(value ?? 0)}
+                    addonAfter="deg"
+                    style={{ width: 112 }}
+                  />
+                </Space.Compact>
+              </div>
+            </Space>
+          </Form.Item>
+
           <Form.Item>
             <Button
               type="primary"
@@ -363,6 +503,38 @@ export function MyProfilePage() {
         <Typography.Title level={5} style={{ marginTop: 24 }}>
           Security
         </Typography.Title>
+        <Divider />
+
+        <Typography.Title level={5} style={{ marginTop: 0 }}>
+          Login history
+        </Typography.Title>
+
+        <Table<LoginHistoryItemResponse>
+          size="small"
+          rowKey={(item) => String(item.loginId)}
+          columns={loginHistoryColumns}
+          dataSource={loginHistoryQuery.data?.items ?? []}
+          loading={loginHistoryQuery.isFetching}
+          scroll={{ x: 860 }}
+          locale={{
+            emptyText: loginHistoryQuery.isError
+              ? "Could not load login history."
+              : "No login history.",
+          }}
+          pagination={{
+            current: loginHistoryQuery.data?.page ?? loginHistoryPage,
+            pageSize:
+              loginHistoryQuery.data?.pageSize ?? loginHistoryPageSize,
+            total: loginHistoryQuery.data?.totalItems ?? 0,
+            showSizeChanger: true,
+            onChange: (page, pageSize) => {
+              setLoginHistoryPage(page);
+              setLoginHistoryPageSize(pageSize);
+            },
+          }}
+          style={{ maxWidth: 960 }}
+        />
+
         <Divider />
 
         <Card

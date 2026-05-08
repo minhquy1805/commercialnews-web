@@ -4,6 +4,7 @@ import {
   AuditOutlined,
   DashboardOutlined,
   FileTextOutlined,
+  IdcardOutlined,
   LockOutlined,
   NotificationOutlined,
   SafetyCertificateOutlined,
@@ -50,8 +51,8 @@ const sidebarItems: MenuItem[] = [
 
   getItem("My Profile", ROUTES.PROFILE, <UserOutlined />),
 
-  getItem("Identity", "identity", <UserOutlined />, [
-    getItem("Users", "/identity/users"),
+  getItem("Identity", "identity", <IdcardOutlined />, [
+    getItem("Users", ROUTES.IDENTITY_USERS),
     getItem("Roles", "/identity/roles"),
     getItem("Permissions", "/identity/permissions"),
   ]),

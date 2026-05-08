@@ -12,15 +12,15 @@ type RetryableAxiosRequestConfig = InternalAxiosRequestConfig & {
 type RefreshTokenResponse = {
   userId: number;
   accessToken: string;
-  refreshToken: string;
   accessTokenExpiresAtUtc: string;
-  refreshTokenExpiresAtUtc: string;
 };
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const AUTH_BASE_URL = "/api/v1/auth";
 
 export const httpClient = axios.create({
   baseURL: API_BASE_URL,
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
@@ -28,19 +28,24 @@ export const httpClient = axios.create({
 
 const refreshHttpClient = axios.create({
   baseURL: API_BASE_URL,
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-let refreshTokenPromise: Promise<RefreshTokenResponse> | null = null;
+let authRefreshPromise: Promise<RefreshTokenResponse> | null = null;
 
-function isRefreshTokenUrl(url?: string): boolean {
-  return Boolean(url?.includes("/api/v1/identity/refresh-token"));
+function isAuthLoginUrl(url?: string): boolean {
+  return Boolean(url?.includes(`${AUTH_BASE_URL}/login`));
 }
 
-function isLoginUrl(url?: string): boolean {
-  return Boolean(url?.includes("/api/v1/identity/login"));
+function isAuthRefreshUrl(url?: string): boolean {
+  return Boolean(url?.includes(`${AUTH_BASE_URL}/refresh`));
+}
+
+function isAuthLogoutUrl(url?: string): boolean {
+  return Boolean(url?.includes(`${AUTH_BASE_URL}/logout`));
 }
 
 function redirectToLogin() {
@@ -77,16 +82,10 @@ httpClient.interceptors.response.use(
 
     if (
       originalRequest._retry ||
-      isLoginUrl(originalRequest.url) ||
-      isRefreshTokenUrl(originalRequest.url)
+      isAuthLoginUrl(originalRequest.url) ||
+      isAuthRefreshUrl(originalRequest.url) ||
+      isAuthLogoutUrl(originalRequest.url)
     ) {
-      redirectToLogin();
-      return Promise.reject(error);
-    }
-
-    const refreshToken = tokenStorage.getRefreshToken();
-
-    if (!refreshToken) {
       redirectToLogin();
       return Promise.reject(error);
     }
@@ -94,21 +93,16 @@ httpClient.interceptors.response.use(
     originalRequest._retry = true;
 
     try {
-      refreshTokenPromise ??= refreshHttpClient
-        .post<RefreshTokenResponse>("/api/v1/identity/refresh-token", {
-          refreshToken,
-        })
+      authRefreshPromise ??= refreshHttpClient
+        .post<RefreshTokenResponse>(`${AUTH_BASE_URL}/refresh`)
         .then((response) => response.data)
         .finally(() => {
-          refreshTokenPromise = null;
+          authRefreshPromise = null;
         });
 
-      const refreshedToken = await refreshTokenPromise;
+      const refreshedToken = await authRefreshPromise;
 
-      tokenStorage.setTokens(
-        refreshedToken.accessToken,
-        refreshedToken.refreshToken,
-      );
+      tokenStorage.setAccessToken(refreshedToken.accessToken);
 
       originalRequest.headers.Authorization = `Bearer ${refreshedToken.accessToken}`;
 

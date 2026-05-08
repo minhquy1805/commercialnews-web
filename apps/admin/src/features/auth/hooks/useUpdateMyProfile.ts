@@ -1,17 +1,17 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { identityApi } from "../api/identityApi";
-import type { UpdateMyProfileRequest } from "../types/identity.types";
+import { authApi } from "../api/authApi";
+import type { UpdateMyProfileRequest } from "../types/auth.types";
 
 export function useUpdateMyProfile() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (request: UpdateMyProfileRequest) =>
-      identityApi.updateMyProfile(request),
+      authApi.updateMyProfile(request),
 
     onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: ["identity", "me"],
+        queryKey: ["auth", "me"],
       });
     },
   });
