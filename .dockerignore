@@ -1,0 +1,63 @@
+# Dependencies
+node_modules
+**/node_modules
+
+# Build outputs
+dist
+build
+coverage
+**/dist
+**/build
+**/coverage
+
+# Vite / Next / Turbo cache
+.vite
+**/.vite
+.next
+**/.next
+.turbo
+**/.turbo
+.cache
+**/.cache
+
+# TypeScript build info
+*.tsbuildinfo
+**/*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Git
+.git
+.gitignore
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.vscode
+.idea
+
+# Local env files
+.env
+.env.local
+.env.*.local
+
+# Keep production/example env files if needed by Docker build
+# Do NOT ignore:
+# apps/admin/.env.production
+# apps/website/.env.production
+# .env.example
+# apps/admin/.env.example
+# apps/website/.env.example
+
+# Test / temporary files
+tmp
+temp
+*.tmp
+
+# Misc
+README.md
