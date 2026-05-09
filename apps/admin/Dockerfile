@@ -10,7 +10,6 @@ COPY apps/admin/package.json ./apps/admin/package.json
 RUN npm ci
 
 COPY apps/admin ./apps/admin
-COPY packages ./packages
 
 RUN npm run build:admin
 
