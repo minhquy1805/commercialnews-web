@@ -10,6 +10,12 @@ import { PermissionDetailPage } from "../../features/authorization/pages/Permiss
 import { PermissionsPage } from "../../features/authorization/pages/PermissionsPage";
 import { RoleDetailPage } from "../../features/authorization/pages/RoleDetailPage";
 import { RolesPage } from "../../features/authorization/pages/RolesPage";
+import { ArticleDetailPage } from "../../features/content/pages/ArticleDetailPage";
+import { ArticlesPage } from "../../features/content/pages/ArticlesPage";
+import { CategoriesPage } from "../../features/content/pages/CategoriesPage";
+import { CategoryDetailPage } from "../../features/content/pages/CategoryDetailPage";
+import { TagDetailPage } from "../../features/content/pages/TagDetailPage";
+import { TagsPage } from "../../features/content/pages/TagsPage";
 import { UserDetailPage } from "../../features/identity/pages/UserDetailPage";
 import { UsersPage } from "../../features/identity/pages/UsersPage";
 
@@ -57,6 +63,18 @@ export function AppRouter() {
           path={ROUTES.AUTHORIZATION_PERMISSION_DETAIL}
           element={<PermissionDetailPage />}
         />
+        <Route path={ROUTES.CONTENT_NEWS} element={<ArticlesPage />} />
+        <Route
+          path={ROUTES.CONTENT_NEWS_DETAIL}
+          element={<ArticleDetailPage />}
+        />
+        <Route path={ROUTES.CONTENT_CATEGORIES} element={<CategoriesPage />} />
+        <Route
+          path={ROUTES.CONTENT_CATEGORY_DETAIL}
+          element={<CategoryDetailPage />}
+        />
+        <Route path={ROUTES.CONTENT_TAGS} element={<TagsPage />} />
+        <Route path={ROUTES.CONTENT_TAG_DETAIL} element={<TagDetailPage />} />
       </Route>
     </Routes>
   );

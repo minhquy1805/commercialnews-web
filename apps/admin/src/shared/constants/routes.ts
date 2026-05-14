@@ -9,4 +9,10 @@ export const ROUTES = {
   AUTHORIZATION_ROLE_DETAIL: "/authorization/roles/:roleId",
   AUTHORIZATION_PERMISSIONS: "/authorization/permissions",
   AUTHORIZATION_PERMISSION_DETAIL: "/authorization/permissions/:permissionId",
+  CONTENT_NEWS: "/content/news",
+  CONTENT_NEWS_DETAIL: "/content/news/:articleId",
+  CONTENT_CATEGORIES: "/content/categories",
+  CONTENT_CATEGORY_DETAIL: "/content/categories/:categoryId",
+  CONTENT_TAGS: "/content/tags",
+  CONTENT_TAG_DETAIL: "/content/tags/:tagId",
 } as const;

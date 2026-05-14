@@ -61,8 +61,9 @@ const sidebarItems: MenuItem[] = [
   ]),
 
   getItem("Content", "content", <FileTextOutlined />, [
-    getItem("News", "/content/news"),
-    getItem("Categories", "/content/categories"),
+    getItem("News", ROUTES.CONTENT_NEWS),
+    getItem("Categories", ROUTES.CONTENT_CATEGORIES),
+    getItem("Tags", ROUTES.CONTENT_TAGS),
   ]),
 
   getItem("Notifications", "/notifications", <NotificationOutlined />),
