@@ -4,6 +4,7 @@ import {
   AuditOutlined,
   DashboardOutlined,
   FileTextOutlined,
+  GlobalOutlined,
   IdcardOutlined,
   LockOutlined,
   NotificationOutlined,
@@ -66,6 +67,11 @@ const sidebarItems: MenuItem[] = [
     getItem("Tags", ROUTES.CONTENT_TAGS),
   ]),
 
+  getItem("SEO", "seo", <GlobalOutlined />, [
+    getItem("Metadata", ROUTES.SEO_METADATA),
+    getItem("Slug routes", ROUTES.SEO_SLUG_ROUTES),
+  ]),
+
   getItem("Notifications", "/notifications", <NotificationOutlined />),
   getItem("Audit Logs", "/audit/logs", <AuditOutlined />),
   getItem("Security", "/security", <LockOutlined />),
@@ -77,6 +83,7 @@ function getOpenKeys(pathname: string): string[] {
   if (pathname.startsWith("/identity")) return ["identity"];
   if (pathname.startsWith("/authorization")) return ["authorization"];
   if (pathname.startsWith("/content")) return ["content"];
+  if (pathname.startsWith("/seo")) return ["seo"];
 
   return [];
 }

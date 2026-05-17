@@ -18,6 +18,11 @@ import { TagDetailPage } from "../../features/content/pages/TagDetailPage";
 import { TagsPage } from "../../features/content/pages/TagsPage";
 import { UserDetailPage } from "../../features/identity/pages/UserDetailPage";
 import { UsersPage } from "../../features/identity/pages/UsersPage";
+import { ArticleSeoSettingsPage } from "../../features/seo/pages/ArticleSeoSettingsPage";
+import { SeoMetadataDetailPage } from "../../features/seo/pages/SeoMetadataDetailPage";
+import { SeoMetadataPage } from "../../features/seo/pages/SeoMetadataPage";
+import { SlugRouteDetailPage } from "../../features/seo/pages/SlugRouteDetailPage";
+import { SlugRoutesPage } from "../../features/seo/pages/SlugRoutesPage";
 
 export function AppRouter() {
   return (
@@ -75,6 +80,24 @@ export function AppRouter() {
         />
         <Route path={ROUTES.CONTENT_TAGS} element={<TagsPage />} />
         <Route path={ROUTES.CONTENT_TAG_DETAIL} element={<TagDetailPage />} />
+        <Route
+          path={ROUTES.SEO}
+          element={<Navigate to={ROUTES.SEO_METADATA} replace />}
+        />
+        <Route path={ROUTES.SEO_METADATA} element={<SeoMetadataPage />} />
+        <Route
+          path={ROUTES.SEO_METADATA_DETAIL}
+          element={<SeoMetadataDetailPage />}
+        />
+        <Route path={ROUTES.SEO_SLUG_ROUTES} element={<SlugRoutesPage />} />
+        <Route
+          path={ROUTES.SEO_SLUG_ROUTE_DETAIL}
+          element={<SlugRouteDetailPage />}
+        />
+        <Route
+          path={ROUTES.SEO_ARTICLE_SETTINGS}
+          element={<ArticleSeoSettingsPage />}
+        />
       </Route>
     </Routes>
   );

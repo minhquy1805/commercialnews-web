@@ -4,6 +4,7 @@ import {
   EditOutlined,
   FileDoneOutlined,
   InboxOutlined,
+  SearchOutlined,
   SendOutlined,
 } from "@ant-design/icons";
 import {
@@ -105,6 +106,13 @@ function formatDateTime(value: string | null) {
 function renderArticleStatus(status: ArticleStatus) {
   return (
     <Tag color={ArticleStatusColors[status]}>{ArticleStatusLabels[status]}</Tag>
+  );
+}
+
+function getArticleSeoSettingsPath(articlePublicId: string) {
+  return ROUTES.SEO_ARTICLE_SETTINGS.replace(
+    ":articlePublicId",
+    encodeURIComponent(articlePublicId),
   );
 }
 
@@ -678,6 +686,15 @@ export function ArticleDetailPage() {
             disabled={article.isDeleted || isActionPending}
           >
             Edit article
+          </Button>
+
+          <Button
+            icon={<SearchOutlined />}
+            onClick={() =>
+              navigate(getArticleSeoSettingsPath(article.articlePublicId))
+            }
+          >
+            SEO settings
           </Button>
 
           {article.status === ArticleStatuses.Draft && (

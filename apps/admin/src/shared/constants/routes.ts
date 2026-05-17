@@ -15,4 +15,10 @@ export const ROUTES = {
   CONTENT_CATEGORY_DETAIL: "/content/categories/:categoryId",
   CONTENT_TAGS: "/content/tags",
   CONTENT_TAG_DETAIL: "/content/tags/:tagId",
+  SEO: "/seo",
+  SEO_METADATA: "/seo/metadata",
+  SEO_METADATA_DETAIL: "/seo/metadata/:seoId",
+  SEO_SLUG_ROUTES: "/seo/slug-routes",
+  SEO_SLUG_ROUTE_DETAIL: "/seo/slug-routes/:slugId",
+  SEO_ARTICLE_SETTINGS: "/seo/articles/:articlePublicId",
 } as const;
