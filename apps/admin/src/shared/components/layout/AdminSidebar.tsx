@@ -8,6 +8,7 @@ import {
   IdcardOutlined,
   LockOutlined,
   NotificationOutlined,
+  PictureOutlined,
   SafetyCertificateOutlined,
   SettingOutlined,
   TeamOutlined,
@@ -67,6 +68,10 @@ const sidebarItems: MenuItem[] = [
     getItem("Tags", ROUTES.CONTENT_TAGS),
   ]),
 
+  getItem("Media", "media", <PictureOutlined />, [
+    getItem("Assets", ROUTES.MEDIA_ASSETS),
+  ]),
+
   getItem("SEO", "seo", <GlobalOutlined />, [
     getItem("Metadata", ROUTES.SEO_METADATA),
     getItem("Slug routes", ROUTES.SEO_SLUG_ROUTES),
@@ -83,6 +88,7 @@ function getOpenKeys(pathname: string): string[] {
   if (pathname.startsWith("/identity")) return ["identity"];
   if (pathname.startsWith("/authorization")) return ["authorization"];
   if (pathname.startsWith("/content")) return ["content"];
+  if (pathname.startsWith("/media")) return ["media"];
   if (pathname.startsWith("/seo")) return ["seo"];
 
   return [];

@@ -59,11 +59,9 @@ export const adminArticlesApi = {
   updateArticle: async (
     request: UpdateAdminArticleRequest,
   ): Promise<UpdateAdminArticleResponse> => {
-    const { articleId, ...body } = request;
-
     const response = await httpClient.put<UpdateAdminArticleResponse>(
-      `${BASE_URL}/${articleId}`,
-      body,
+      `${BASE_URL}/${request.articleId}`,
+      request,
     );
 
     return response.data;

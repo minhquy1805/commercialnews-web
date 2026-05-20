@@ -3,11 +3,13 @@ import {
   DeleteOutlined,
   EditOutlined,
   FileDoneOutlined,
+  FileImageOutlined,
   InboxOutlined,
   SearchOutlined,
   SendOutlined,
 } from "@ant-design/icons";
 import {
+  Alert,
   App,
   Button,
   Card,
@@ -22,17 +24,36 @@ import {
   Space,
   Table,
   Tag,
+  Tooltip,
   type TableProps,
   Typography,
 } from "antd";
 import { type CSSProperties, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import {
+  getApiErrorDetailsMessage,
+  getApiErrorMessage,
+  getApiErrorTraceId,
+} from "../../../shared/api/apiError";
 import { ROUTES } from "../../../shared/constants/routes";
 import {
   AuthorizationAuditUser,
   type AuthorizationAuditUsersById,
 } from "../../authorization/components/AuthorizationAuditUser";
 import { getNumericUserIds } from "../../authorization/utils/authorizationAudit";
+import { useAdminUserDetails } from "../../identity/hooks/useAdminUserDetails";
+import { ADMIN_MEDIA_TYPES } from "../../media/constants/mediaConstants";
+import { useAttachMediaToArticle } from "../../media/hooks/article-media/useAttachMediaToArticle";
+import { useAdminMediaAssetDetail } from "../../media/hooks/media-assets/useAdminMediaAssetDetail";
+import { useAdminMediaAssets } from "../../media/hooks/media-assets/useAdminMediaAssets";
+import type { AdminMediaAsset } from "../../media/types/adminMediaAsset.types";
+import {
+  formatBytes,
+  formatDimensions,
+  getMediaAssetPath,
+  renderMediaPreview,
+  renderMediaTypeTag,
+} from "../../media/utils/mediaUi";
 import {
   ArticleLifecycleActionTypeColors,
   ArticleLifecycleActionTypeLabels,
@@ -60,7 +81,6 @@ import type {
   AdminArticleRevisionListItem,
   AdminArticleTagItem,
 } from "../types/adminArticle.types";
-import { useAdminUserDetails } from "../../identity/hooks/useAdminUserDetails";
 
 type EditArticleFormValues = {
   categoryId?: number | null;
@@ -114,6 +134,68 @@ function getArticleSeoSettingsPath(articlePublicId: string) {
     ":articlePublicId",
     encodeURIComponent(articlePublicId),
   );
+}
+
+function getArticleMediaPath(articleId: number) {
+  return ROUTES.MEDIA_ARTICLE_ATTACHMENTS.replace(
+    ":articleId",
+    String(articleId),
+  );
+}
+
+function getCoverMediaColumns(): TableProps<AdminMediaAsset>["columns"] {
+  return [
+    {
+      title: "Preview",
+      key: "preview",
+      fixed: "left",
+      width: 96,
+      render: (_, asset) => renderMediaPreview(asset, 56),
+    },
+    {
+      title: "Image",
+      key: "image",
+      fixed: "left",
+      width: 320,
+      render: (_, asset) => (
+        <div style={{ minWidth: 0, maxWidth: 270 }}>
+          <Typography.Text strong style={wrappingTextStyle}>
+            {asset.fileName}
+          </Typography.Text>
+          <Typography.Text type="secondary" style={wrappingTextStyle}>
+            {asset.publicId}
+          </Typography.Text>
+        </div>
+      ),
+    },
+    {
+      title: "Type",
+      dataIndex: "mediaType",
+      key: "mediaType",
+      width: 110,
+      render: renderMediaTypeTag,
+    },
+    {
+      title: "Size",
+      dataIndex: "fileSizeBytes",
+      key: "fileSizeBytes",
+      width: 120,
+      render: formatBytes,
+    },
+    {
+      title: "Dimensions",
+      key: "dimensions",
+      width: 140,
+      render: (_, asset) => formatDimensions(asset.width, asset.height),
+    },
+    {
+      title: "Created at",
+      dataIndex: "createdAt",
+      key: "createdAt",
+      width: 190,
+      render: formatDateTime,
+    },
+  ];
 }
 
 function getArticleTagColumns(
@@ -330,9 +412,27 @@ export function ArticleDetailPage() {
   const [unpublishForm] = Form.useForm<UnpublishArticleFormValues>();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isUnpublishModalOpen, setIsUnpublishModalOpen] = useState(false);
+  const [isCoverPickerOpen, setIsCoverPickerOpen] = useState(false);
+  const [selectedCoverMediaId, setSelectedCoverMediaId] = useState<number | null>(
+    null,
+  );
+  const [pickerCoverMediaId, setPickerCoverMediaId] = useState<number | null>(
+    null,
+  );
+  const [coverPickerPage, setCoverPickerPage] = useState(1);
+  const [coverPickerPageSize, setCoverPickerPageSize] = useState(10);
 
   const articleDetailQuery = useAdminArticleDetail(selectedArticleId ?? 0);
   const article = articleDetailQuery.data;
+  const selectedCoverMediaQuery = useAdminMediaAssetDetail(
+    selectedCoverMediaId ?? 0,
+  );
+  const coverPickerQuery = useAdminMediaAssets({
+    page: coverPickerPage,
+    pageSize: coverPickerPageSize,
+    isDeleted: false,
+    mediaType: ADMIN_MEDIA_TYPES.IMAGE,
+  });
   const articleTagsQuery = useAdminArticleTags(selectedArticleId ?? 0);
   const revisionsQuery = useAdminArticleRevisions(selectedArticleId ?? 0);
   const lifecycleEventsQuery = useAdminArticleLifecycleEvents(
@@ -362,12 +462,14 @@ export function ArticleDetailPage() {
     ]),
   );
   const updateArticleMutation = useUpdateAdminArticle();
+  const attachMediaToArticleMutation = useAttachMediaToArticle();
   const publishArticleMutation = usePublishAdminArticle();
   const unpublishArticleMutation = useUnpublishAdminArticle();
   const archiveArticleMutation = useArchiveAdminArticle();
   const softDeleteArticleMutation = useSoftDeleteAdminArticle();
   const isActionPending =
     updateArticleMutation.isPending ||
+    attachMediaToArticleMutation.isPending ||
     publishArticleMutation.isPending ||
     unpublishArticleMutation.isPending ||
     archiveArticleMutation.isPending ||
@@ -410,6 +512,7 @@ export function ArticleDetailPage() {
     auditUsersQuery.usersById,
     auditUsersQuery.isFetching,
   );
+  const coverMediaColumns = getCoverMediaColumns();
 
   async function runArticleAction(
     action: () => Promise<unknown>,
@@ -425,9 +528,19 @@ export function ArticleDetailPage() {
       });
 
       return true;
-    } catch {
+    } catch (error) {
+      const traceId = getApiErrorTraceId(error);
+      const detailsMessage = getApiErrorDetailsMessage(error);
+      const apiErrorMessage = getApiErrorMessage(error, errorMessage);
+      const descriptionParts = [
+        apiErrorMessage,
+        detailsMessage ? `Details: ${detailsMessage}` : null,
+        traceId ? `Trace ID: ${traceId}` : null,
+      ].filter(Boolean);
+
       notification.error({
         message: errorMessage,
+        description: descriptionParts.join(" "),
         placement: "topRight",
       });
 
@@ -440,6 +553,15 @@ export function ArticleDetailPage() {
       return;
     }
 
+    if (article.status !== ArticleStatuses.Draft) {
+      notification.warning({
+        message: "Only draft articles can be edited.",
+        description: "Unpublish the article before changing its content.",
+        placement: "topRight",
+      });
+      return;
+    }
+
     editForm.setFieldsValue({
       categoryId: article.categoryId ?? undefined,
       title: article.title,
@@ -449,12 +571,46 @@ export function ArticleDetailPage() {
       tagIds: articleTagsQuery.data?.map((tag) => tag.tagId) ?? [],
       changeSummary: "",
     });
+    setSelectedCoverMediaId(article.coverMediaId);
     setIsEditModalOpen(true);
   }
 
   function closeEditModal() {
     setIsEditModalOpen(false);
     editForm.resetFields();
+    setSelectedCoverMediaId(null);
+    setPickerCoverMediaId(null);
+    setIsCoverPickerOpen(false);
+  }
+
+  function openCoverPicker() {
+    setPickerCoverMediaId(selectedCoverMediaId);
+    setCoverPickerPage(1);
+    setIsCoverPickerOpen(true);
+  }
+
+  function closeCoverPicker() {
+    setIsCoverPickerOpen(false);
+    setPickerCoverMediaId(null);
+  }
+
+  function confirmCoverPicker() {
+    if (!pickerCoverMediaId) {
+      notification.warning({
+        message: "Select an image for the cover.",
+        placement: "topRight",
+      });
+      return;
+    }
+
+    setSelectedCoverMediaId(pickerCoverMediaId);
+    editForm.setFieldValue("coverMediaId", pickerCoverMediaId);
+    closeCoverPicker();
+  }
+
+  function clearCoverMedia() {
+    setSelectedCoverMediaId(null);
+    editForm.setFieldValue("coverMediaId", null);
   }
 
   function openUnpublishModal() {
@@ -472,7 +628,17 @@ export function ArticleDetailPage() {
       return;
     }
 
+    if (article.status !== ArticleStatuses.Draft) {
+      notification.warning({
+        message: "Only draft articles can be edited.",
+        description: "Unpublish the article before changing its content.",
+        placement: "topRight",
+      });
+      return;
+    }
+
     const values = await editForm.validateFields();
+    const nextCoverMediaId = values.coverMediaId ?? null;
     const completed = await runArticleAction(
       () =>
         updateArticleMutation.mutateAsync({
@@ -481,7 +647,7 @@ export function ArticleDetailPage() {
           title: values.title.trim(),
           summary: values.summary?.trim() || null,
           body: values.body.trim(),
-          coverMediaId: values.coverMediaId ?? null,
+          coverMediaId: nextCoverMediaId,
           tagIds: values.tagIds ?? [],
           changeSummary: values.changeSummary?.trim() || null,
           expectedVersion: article.version,
@@ -491,6 +657,27 @@ export function ArticleDetailPage() {
     );
 
     if (completed) {
+      if (nextCoverMediaId && nextCoverMediaId !== article.coverMediaId) {
+        try {
+          await attachMediaToArticleMutation.mutateAsync({
+            articleId: article.articleId,
+            request: {
+              mediaId: nextCoverMediaId,
+              isPrimary: true,
+            },
+          });
+        } catch (error) {
+          notification.warning({
+            message: "Article updated, but cover was not attached as primary.",
+            description: getApiErrorMessage(
+              error,
+              "Could not attach cover media to article media.",
+            ),
+            placement: "topRight",
+          });
+        }
+      }
+
       closeEditModal();
     }
   }
@@ -623,7 +810,17 @@ export function ArticleDetailPage() {
             {renderArticleStatus(article.status)}
           </Descriptions.Item>
           <Descriptions.Item label="Cover media">
-            {article.coverMediaId ?? "N/A"}
+            {article.coverMediaId ? (
+              <Button
+                type="link"
+                onClick={() => navigate(getMediaAssetPath(article.coverMediaId!))}
+                style={{ height: "auto", padding: 0 }}
+              >
+                Media #{article.coverMediaId}
+              </Button>
+            ) : (
+              "N/A"
+            )}
           </Descriptions.Item>
           <Descriptions.Item label="Deleted">
             {article.isDeleted ? (
@@ -679,14 +876,28 @@ export function ArticleDetailPage() {
 
       <Card title="Actions" style={{ marginTop: 16 }}>
         <Space size={12} wrap>
-          <Button
-            icon={<EditOutlined />}
-            onClick={openEditModal}
-            loading={updateArticleMutation.isPending}
-            disabled={article.isDeleted || isActionPending}
+          <Tooltip
+            title={
+              article.status === ArticleStatuses.Draft
+                ? undefined
+                : "Only draft articles can be edited. Unpublish the article first."
+            }
           >
-            Edit article
-          </Button>
+            <span>
+              <Button
+                icon={<EditOutlined />}
+                onClick={openEditModal}
+                loading={updateArticleMutation.isPending}
+                disabled={
+                  article.isDeleted ||
+                  article.status !== ArticleStatuses.Draft ||
+                  isActionPending
+                }
+              >
+                Edit article
+              </Button>
+            </span>
+          </Tooltip>
 
           <Button
             icon={<SearchOutlined />}
@@ -695,6 +906,13 @@ export function ArticleDetailPage() {
             }
           >
             SEO settings
+          </Button>
+
+          <Button
+            icon={<FileImageOutlined />}
+            onClick={() => navigate(getArticleMediaPath(article.articleId))}
+          >
+            Media
           </Button>
 
           {article.status === ArticleStatuses.Draft && (
@@ -869,7 +1087,9 @@ export function ArticleDetailPage() {
         open={isEditModalOpen}
         okText="Save"
         width={760}
-        confirmLoading={updateArticleMutation.isPending}
+        confirmLoading={
+          updateArticleMutation.isPending || attachMediaToArticleMutation.isPending
+        }
         onOk={handleUpdateArticle}
         onCancel={closeEditModal}
         destroyOnHidden
@@ -929,22 +1149,95 @@ export function ArticleDetailPage() {
             <Input.TextArea autoSize={{ minRows: 8, maxRows: 18 }} />
           </Form.Item>
 
-          <Space size={12} style={{ width: "100%" }} align="start">
-            <Form.Item label="Cover media ID" name="coverMediaId" style={{ flex: 1 }}>
-              <InputNumber min={1} precision={0} style={{ width: "100%" }} />
-            </Form.Item>
+          <Form.Item name="coverMediaId" hidden>
+            <InputNumber />
+          </Form.Item>
 
-            <Form.Item label="Tags" name="tagIds" style={{ flex: 2 }}>
-              <Select<number[]>
-                allowClear
-                mode="multiple"
-                optionFilterProp="label"
-                placeholder="Select tags"
-                loading={tagsQuery.isFetching}
-                options={tagOptions}
+          <Form.Item label="Cover media">
+            <div
+              style={{
+                alignItems: "center",
+                border: "1px solid #f0f0f0",
+                borderRadius: 8,
+                display: "flex",
+                gap: 12,
+                padding: 12,
+              }}
+            >
+              {selectedCoverMediaQuery.data ? (
+                renderMediaPreview(selectedCoverMediaQuery.data, 72)
+              ) : (
+                <div
+                  style={{
+                    alignItems: "center",
+                    background: "#f5f5f5",
+                    border: "1px solid #f0f0f0",
+                    borderRadius: 8,
+                    color: "#8c8c8c",
+                    display: "flex",
+                    height: 72,
+                    justifyContent: "center",
+                    width: 72,
+                  }}
+                >
+                  <FileImageOutlined />
+                </div>
+              )}
+
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <Typography.Text strong style={wrappingTextStyle}>
+                  {selectedCoverMediaQuery.data?.fileName ||
+                    (selectedCoverMediaId
+                      ? `Media #${selectedCoverMediaId}`
+                      : "No cover selected")}
+                </Typography.Text>
+                <Typography.Text type="secondary" style={wrappingTextStyle}>
+                  {selectedCoverMediaQuery.data?.publicId ||
+                    "Choose an active image from media assets."}
+                </Typography.Text>
+              </div>
+
+              <Space size={8} wrap>
+                <Button onClick={openCoverPicker}>Select image</Button>
+                <Button
+                  disabled={!selectedCoverMediaId}
+                  onClick={clearCoverMedia}
+                >
+                  Clear
+                </Button>
+                <Button
+                  disabled={!selectedCoverMediaId}
+                  onClick={() => {
+                    if (selectedCoverMediaId) {
+                      navigate(getMediaAssetPath(selectedCoverMediaId));
+                    }
+                  }}
+                >
+                  Open
+                </Button>
+              </Space>
+            </div>
+
+            {selectedCoverMediaQuery.isError && selectedCoverMediaId && (
+              <Alert
+                type="warning"
+                showIcon
+                style={{ marginTop: 12 }}
+                message="Could not load the selected cover media."
               />
-            </Form.Item>
-          </Space>
+            )}
+          </Form.Item>
+
+          <Form.Item label="Tags" name="tagIds">
+            <Select<number[]>
+              allowClear
+              mode="multiple"
+              optionFilterProp="label"
+              placeholder="Select tags"
+              loading={tagsQuery.isFetching}
+              options={tagOptions}
+            />
+          </Form.Item>
 
           <Form.Item
             label="Change summary"
@@ -963,6 +1256,62 @@ export function ArticleDetailPage() {
             />
           </Form.Item>
         </Form>
+      </Modal>
+
+      <Modal
+        title="Select cover image"
+        open={isCoverPickerOpen}
+        okText="Use as cover"
+        width={920}
+        okButtonProps={{ disabled: !pickerCoverMediaId }}
+        onOk={confirmCoverPicker}
+        onCancel={closeCoverPicker}
+        destroyOnHidden
+      >
+        <Table<AdminMediaAsset>
+          bordered
+          rowKey={(asset) => String(asset.mediaId)}
+          columns={coverMediaColumns}
+          dataSource={coverPickerQuery.data?.items ?? []}
+          loading={coverPickerQuery.isFetching}
+          rowSelection={{
+            type: "radio",
+            selectedRowKeys: pickerCoverMediaId
+              ? [String(pickerCoverMediaId)]
+              : [],
+            onChange: (selectedRowKeys) => {
+              const selectedKey = selectedRowKeys[0];
+              setPickerCoverMediaId(selectedKey ? Number(selectedKey) : null);
+            },
+          }}
+          scroll={{ x: 976, y: 360 }}
+          locale={{
+            emptyText: coverPickerQuery.isError
+              ? "Could not load image assets."
+              : "No image assets found.",
+          }}
+          pagination={{
+            current: coverPickerQuery.data?.page ?? coverPickerPage,
+            pageSize: coverPickerQuery.data?.pageSize ?? coverPickerPageSize,
+            total: coverPickerQuery.data?.totalItems ?? 0,
+            showSizeChanger: true,
+            showTotal: (total) => `${total} images`,
+            onChange: (nextPage, nextPageSize) => {
+              setCoverPickerPage(nextPage);
+              setCoverPickerPageSize(nextPageSize);
+              setPickerCoverMediaId(null);
+            },
+          }}
+          style={{
+            border: "1px solid #f0f0f0",
+            borderRadius: 8,
+            overflow: "hidden",
+          }}
+          onRow={(asset) => ({
+            onClick: () => setPickerCoverMediaId(asset.mediaId),
+            style: { cursor: "pointer" },
+          })}
+        />
       </Modal>
 
       <Modal

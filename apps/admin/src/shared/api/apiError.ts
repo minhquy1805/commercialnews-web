@@ -35,6 +35,90 @@ export function getApiErrorTraceId(error: unknown): string | undefined {
   return error.response?.data?.traceId;
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function collectDetailMessages(
+  value: unknown,
+  path = "",
+  messages: string[] = [],
+): string[] {
+  if (!value) {
+    return messages;
+  }
+
+  if (typeof value === "string") {
+    messages.push(path ? `${path}: ${value}` : value);
+    return messages;
+  }
+
+  if (Array.isArray(value)) {
+    value.forEach((item) => collectDetailMessages(item, path, messages));
+    return messages;
+  }
+
+  if (!isRecord(value)) {
+    return messages;
+  }
+
+  const field =
+    value.field ??
+    value.propertyName ??
+    value.property ??
+    value.name ??
+    value.key;
+  const message =
+    value.message ??
+    value.errorMessage ??
+    value.reason ??
+    value.description;
+
+  if (typeof message === "string") {
+    const fieldLabel = typeof field === "string" ? field : path;
+    messages.push(fieldLabel ? `${fieldLabel}: ${message}` : message);
+    return messages;
+  }
+
+  if (isRecord(value.errors)) {
+    collectDetailMessages(value.errors, path, messages);
+    return messages;
+  }
+
+  Object.entries(value).forEach(([key, item]) => {
+    if (["code", "message", "traceId"].includes(key)) {
+      return;
+    }
+
+    collectDetailMessages(item, key, messages);
+  });
+
+  return messages;
+}
+
+export function getApiErrorDetailsMessage(
+  error: unknown,
+  maxMessages = 6,
+): string | undefined {
+  if (!axios.isAxiosError<ApiErrorResponse>(error)) {
+    return undefined;
+  }
+
+  const details = error.response?.data?.error?.details;
+  const messages = [...new Set(collectDetailMessages(details))].filter(Boolean);
+
+  if (messages.length === 0) {
+    return undefined;
+  }
+
+  const displayedMessages = messages.slice(0, maxMessages);
+  const remainingCount = messages.length - displayedMessages.length;
+
+  return remainingCount > 0
+    ? `${displayedMessages.join("; ")}; and ${remainingCount} more.`
+    : displayedMessages.join("; ");
+}
+
 export function getApiErrorMessage(
   error: unknown,
   fallbackMessage = "Something went wrong. Please try again."

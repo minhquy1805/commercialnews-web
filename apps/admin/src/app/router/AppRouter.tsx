@@ -18,6 +18,9 @@ import { TagDetailPage } from "../../features/content/pages/TagDetailPage";
 import { TagsPage } from "../../features/content/pages/TagsPage";
 import { UserDetailPage } from "../../features/identity/pages/UserDetailPage";
 import { UsersPage } from "../../features/identity/pages/UsersPage";
+import { ArticleMediaPage } from "../../features/media/pages/ArticleMediaPage";
+import { MediaAssetDetailPage } from "../../features/media/pages/MediaAssetDetailPage";
+import { MediaAssetsPage } from "../../features/media/pages/MediaAssetsPage";
 import { ArticleSeoSettingsPage } from "../../features/seo/pages/ArticleSeoSettingsPage";
 import { SeoMetadataDetailPage } from "../../features/seo/pages/SeoMetadataDetailPage";
 import { SeoMetadataPage } from "../../features/seo/pages/SeoMetadataPage";
@@ -80,6 +83,19 @@ export function AppRouter() {
         />
         <Route path={ROUTES.CONTENT_TAGS} element={<TagsPage />} />
         <Route path={ROUTES.CONTENT_TAG_DETAIL} element={<TagDetailPage />} />
+        <Route
+          path={ROUTES.MEDIA}
+          element={<Navigate to={ROUTES.MEDIA_ASSETS} replace />}
+        />
+        <Route path={ROUTES.MEDIA_ASSETS} element={<MediaAssetsPage />} />
+        <Route
+          path={ROUTES.MEDIA_ASSET_DETAIL}
+          element={<MediaAssetDetailPage />}
+        />
+        <Route
+          path={ROUTES.MEDIA_ARTICLE_ATTACHMENTS}
+          element={<ArticleMediaPage />}
+        />
         <Route
           path={ROUTES.SEO}
           element={<Navigate to={ROUTES.SEO_METADATA} replace />}
