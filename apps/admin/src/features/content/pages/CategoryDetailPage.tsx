@@ -24,6 +24,7 @@ import {
 import { type CSSProperties, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ROUTES } from "../../../shared/constants/routes";
+import { getApiErrorDescription } from "../../../shared/api/apiError";
 import { ContentFieldLimits } from "../constants/contentFieldLimits";
 import { useAdminCategories } from "../hooks/category/useAdminCategories";
 import { useAdminCategoryDetail } from "../hooks/category/useAdminCategoryDetail";
@@ -107,14 +108,15 @@ export function CategoryDetailPage() {
       await action();
 
       notification.success({
-        message: successMessage,
+        title: successMessage,
         placement: "topRight",
       });
 
       return true;
-    } catch {
+    } catch (error) {
       notification.error({
-        message: errorMessage,
+        title: errorMessage,
+        description: getApiErrorDescription(error),
         placement: "topRight",
       });
 
@@ -382,6 +384,7 @@ export function CategoryDetailPage() {
         confirmLoading={updateCategoryMutation.isPending}
         onOk={handleUpdateCategory}
         onCancel={closeEditModal}
+        forceRender
         destroyOnHidden
       >
         <Form form={editForm} layout="vertical" requiredMark={false}>

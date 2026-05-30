@@ -23,6 +23,7 @@ import {
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ROUTES } from "../../../shared/constants/routes";
+import { getApiErrorDescription } from "../../../shared/api/apiError";
 import {
   SEO_DEFAULTS,
   SEO_RESOURCE_TYPES,
@@ -33,7 +34,6 @@ import {
 } from "../constants/seoConstants";
 import { useAdminArticleSeoSettings } from "../hooks/metadata/useAdminArticleSeoSettings";
 import { useUpsertAdminArticleSeoSettings } from "../hooks/metadata/useUpsertAdminArticleSeoSettings";
-import { useAdminSlugRouteByResource } from "../hooks/slug-route/useAdminSlugRouteByResource";
 import { useCheckSlugAvailability } from "../hooks/slug-route/useCheckSlugAvailability";
 import { useGenerateSlug } from "../hooks/slug-route/useGenerateSlug";
 import type { CheckSlugAvailabilityRequest } from "../types/adminSlugRoute.types";
@@ -98,12 +98,6 @@ export function ArticleSeoSettingsPage() {
     selectedScope,
   );
   const settings = settingsQuery.data;
-  const slugRouteQuery = useAdminSlugRouteByResource({
-    resourceType: SEO_RESOURCE_TYPES.ARTICLE,
-    resourcePublicId: selectedArticlePublicId,
-    scope: selectedScope,
-    onlyActive: null,
-  });
   const generateSlugMutation = useGenerateSlug();
   const upsertSettingsMutation = useUpsertAdminArticleSeoSettings();
   const availabilityQuery = useCheckSlugAvailability(
@@ -149,7 +143,7 @@ export function ArticleSeoSettingsPage() {
 
     if (!source) {
       notification.warning({
-        message: "Source is required to generate a slug.",
+        title: "Source is required to generate a slug.",
         placement: "topRight",
       });
       return;
@@ -172,12 +166,13 @@ export function ArticleSeoSettingsPage() {
       });
 
       notification.success({
-        message: response.isUnique ? "Slug generated" : "Slug generated with conflict",
+        title: response.isUnique ? "Slug generated" : "Slug generated with conflict",
         placement: "topRight",
       });
-    } catch {
+    } catch (error) {
       notification.error({
-        message: "Could not generate slug.",
+        title: "Could not generate slug.",
+        description: getApiErrorDescription(error),
         placement: "topRight",
       });
     }
@@ -189,7 +184,7 @@ export function ArticleSeoSettingsPage() {
 
     if (!slug) {
       notification.warning({
-        message: "Slug is required to check availability.",
+        title: "Slug is required to check availability.",
         placement: "topRight",
       });
       return;
@@ -236,19 +231,20 @@ export function ArticleSeoSettingsPage() {
           robots: values.robots ?? null,
           isIndexable: Boolean(values.isIndexable),
           isActive: Boolean(values.isActive),
-          expectedSlugVersion: slugRouteQuery.data?.version ?? null,
-          expectedSeoMetadataVersion: settings?.version ?? null,
+          expectedSlugVersion: settings?.slugRouteVersion ?? null,
+          expectedSeoMetadataVersion: settings?.seoMetadataVersion ?? null,
         },
       });
 
       setSelectedScope(scope);
       notification.success({
-        message: "Article SEO settings saved",
+        title: "Article SEO settings saved",
         placement: "topRight",
       });
-    } catch {
+    } catch (error) {
       notification.error({
-        message: "Could not save article SEO settings.",
+        title: "Could not save article SEO settings.",
+        description: getApiErrorDescription(error),
         placement: "topRight",
       });
     }
@@ -326,10 +322,10 @@ export function ArticleSeoSettingsPage() {
             </Typography.Text>
           </Descriptions.Item>
           <Descriptions.Item label="Slug route version">
-            {slugRouteQuery.data?.version ?? "N/A"}
+            {settings?.slugRouteVersion ?? "N/A"}
           </Descriptions.Item>
           <Descriptions.Item label="SEO metadata version">
-            {settings?.version ?? "N/A"}
+            {settings?.seoMetadataVersion ?? "N/A"}
           </Descriptions.Item>
           <Descriptions.Item label="Source version">
             {settings?.sourceAggregateVersion ?? "N/A"}

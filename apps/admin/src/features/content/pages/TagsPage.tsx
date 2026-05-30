@@ -17,6 +17,7 @@ import {
 import { type CSSProperties, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "../../../shared/constants/routes";
+import { getApiErrorDescription } from "../../../shared/api/apiError";
 import { ContentFieldLimits } from "../constants/contentFieldLimits";
 import { useAdminTags } from "../hooks/tag/useAdminTags";
 import { useCreateAdminTag } from "../hooks/tag/useCreateAdminTag";
@@ -193,14 +194,15 @@ export function TagsPage() {
       });
 
       notification.success({
-        message: "Tag created",
+        title: "Tag created",
         placement: "topRight",
       });
       setPage(1);
       closeCreateModal();
-    } catch {
+    } catch (error) {
       notification.error({
-        message: "Could not create tag.",
+        title: "Could not create tag.",
+        description: getApiErrorDescription(error),
         placement: "topRight",
       });
     }
@@ -323,6 +325,7 @@ export function TagsPage() {
         confirmLoading={createTagMutation.isPending}
         onOk={handleCreateTag}
         onCancel={closeCreateModal}
+        forceRender
         destroyOnHidden
       >
         <Form form={createForm} layout="vertical" requiredMark={false}>

@@ -25,6 +25,7 @@ import {
 import { type CSSProperties, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { ROUTES } from "../../../shared/constants/routes";
+import { getApiErrorDescription } from "../../../shared/api/apiError";
 import {
   AuthorizationAuditUser,
   type AuthorizationAuditUsersById,
@@ -279,14 +280,15 @@ export function PermissionDetailPage() {
       await action();
 
       notification.success({
-        message: successMessage,
+        title: successMessage,
         placement: "topRight",
       });
 
       return true;
-    } catch {
+    } catch (error) {
       notification.error({
-        message: errorMessage,
+        title: errorMessage,
+        description: getApiErrorDescription(error),
         placement: "topRight",
       });
 
@@ -632,6 +634,7 @@ export function PermissionDetailPage() {
         confirmLoading={updatePermissionMutation.isPending}
         onOk={handleUpdatePermission}
         onCancel={closeEditModal}
+        forceRender
         destroyOnHidden
       >
         <Form form={editForm} layout="vertical" requiredMark={false}>
@@ -672,6 +675,7 @@ export function PermissionDetailPage() {
         confirmLoading={grantPermissionMutation.isPending}
         onOk={handleGrantRole}
         onCancel={closeGrantRoleModal}
+        forceRender
         destroyOnHidden
       >
         <Form form={grantRoleForm} layout="vertical" requiredMark={false}>

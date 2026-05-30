@@ -18,6 +18,7 @@ import {
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "../../../shared/constants/routes";
+import { getApiErrorDescription } from "../../../shared/api/apiError";
 import {
   SEO_DEFAULTS,
   SEO_RESOURCE_TYPE_SELECT_OPTIONS,
@@ -195,7 +196,7 @@ export function SlugRoutesPage() {
 
     if (!source) {
       notification.warning({
-        message: "Source is required to generate a slug.",
+        title: "Source is required to generate a slug.",
         placement: "topRight",
       });
       return;
@@ -218,12 +219,13 @@ export function SlugRoutesPage() {
       });
 
       notification.success({
-        message: response.isUnique ? "Slug generated" : "Slug generated with conflict",
+        title: response.isUnique ? "Slug generated" : "Slug generated with conflict",
         placement: "topRight",
       });
-    } catch {
+    } catch (error) {
       notification.error({
-        message: "Could not generate slug.",
+        title: "Could not generate slug.",
+        description: getApiErrorDescription(error),
         placement: "topRight",
       });
     }
@@ -235,7 +237,7 @@ export function SlugRoutesPage() {
 
     if (!slug) {
       notification.warning({
-        message: "Slug is required to check availability.",
+        title: "Slug is required to check availability.",
         placement: "topRight",
       });
       return;

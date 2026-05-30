@@ -119,6 +119,20 @@ export function getApiErrorDetailsMessage(
     : displayedMessages.join("; ");
 }
 
+export function getApiErrorDescription(
+  error: unknown,
+  fallbackMessage = "Please try again."
+): string {
+  const message = getApiErrorMessage(error, fallbackMessage);
+  const detailsMessage = getApiErrorDetailsMessage(error);
+
+  if (!detailsMessage || detailsMessage === message) {
+    return message;
+  }
+
+  return `${message} ${detailsMessage}`;
+}
+
 export function getApiErrorMessage(
   error: unknown,
   fallbackMessage = "Something went wrong. Please try again."

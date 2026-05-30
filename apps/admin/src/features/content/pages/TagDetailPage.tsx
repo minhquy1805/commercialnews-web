@@ -22,6 +22,7 @@ import {
 import { type CSSProperties, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ROUTES } from "../../../shared/constants/routes";
+import { getApiErrorDescription } from "../../../shared/api/apiError";
 import { ContentFieldLimits } from "../constants/contentFieldLimits";
 import { useAdminTagDetail } from "../hooks/tag/useAdminTagDetail";
 import { useRestoreAdminTag } from "../hooks/tag/useRestoreAdminTag";
@@ -85,14 +86,15 @@ export function TagDetailPage() {
       await action();
 
       notification.success({
-        message: successMessage,
+        title: successMessage,
         placement: "topRight",
       });
 
       return true;
-    } catch {
+    } catch (error) {
       notification.error({
-        message: errorMessage,
+        title: errorMessage,
+        description: getApiErrorDescription(error),
         placement: "topRight",
       });
 
@@ -331,6 +333,7 @@ export function TagDetailPage() {
         confirmLoading={updateTagMutation.isPending}
         onOk={handleUpdateTag}
         onCancel={closeEditModal}
+        forceRender
         destroyOnHidden
       >
         <Form form={editForm} layout="vertical" requiredMark={false}>

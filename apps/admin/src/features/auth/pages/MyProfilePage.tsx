@@ -37,6 +37,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useLogoutAllSessions } from "../hooks/useLogoutAllSessions";
 import { useAuthStore } from "../stores/authStore";
 import { ROUTES } from "../../../shared/constants/routes";
+import { getApiErrorDescription } from "../../../shared/api/apiError";
 import { USER_ACCOUNT_STATUSES } from "../../../shared/types/userAccountStatus";
 
 type ProfileFormValues = {
@@ -170,14 +171,14 @@ export function MyProfilePage() {
       await updateProfileMutation.mutateAsync(request);
 
       notification.success({
-        message: "Profile updated",
+        title: "Profile updated",
         description: "Your profile information has been updated successfully.",
         placement: "topRight",
       });
-    } catch {
+    } catch (error) {
       notification.error({
-        message: "Update failed",
-        description: "Could not update your profile. Please try again.",
+        title: "Update failed",
+        description: getApiErrorDescription(error),
         placement: "topRight",
       });
     }
@@ -196,7 +197,7 @@ export function MyProfilePage() {
         passwordForm.resetFields();
 
         notification.success({
-          message: "Password changed",
+          title: "Password changed",
           description: "Your password has been changed successfully.",
           placement: "topRight",
         });
@@ -205,15 +206,14 @@ export function MyProfilePage() {
       }
 
       notification.warning({
-        message: "Password not changed",
+        title: "Password not changed",
         description: "The server did not confirm the password change.",
         placement: "topRight",
       });
-    } catch {
+    } catch (error) {
       notification.error({
-        message: "Change password failed",
-        description:
-          "Could not change your password. Please check your current password and try again.",
+        title: "Change password failed",
+        description: getApiErrorDescription(error),
         placement: "topRight",
       });
     }
@@ -225,21 +225,21 @@ export function MyProfilePage() {
 
       if (result.loggedOutAllSessions) {
         notification.success({
-          message: "Logged out all sessions",
+          title: "Logged out all sessions",
           description: "All sessions for your account have been logged out.",
           placement: "topRight",
         });
       } else {
         notification.warning({
-          message: "Logout all sessions not confirmed",
+          title: "Logout all sessions not confirmed",
           description: "The server did not confirm logging out all sessions.",
           placement: "topRight",
         });
       }
-    } catch {
+    } catch (error) {
       notification.error({
-        message: "Logout all sessions failed",
-        description: "Could not logout all sessions. Please try again.",
+        title: "Logout all sessions failed",
+        description: getApiErrorDescription(error),
         placement: "topRight",
       });
 

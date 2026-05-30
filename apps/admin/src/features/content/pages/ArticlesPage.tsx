@@ -17,6 +17,7 @@ import {
 import { type CSSProperties, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "../../../shared/constants/routes";
+import { getApiErrorDescription } from "../../../shared/api/apiError";
 import {
   AuthorizationAuditUser,
   type AuthorizationAuditUsersById,
@@ -314,14 +315,15 @@ export function ArticlesPage() {
       });
 
       notification.success({
-        message: "Article created",
+        title: "Article created",
         placement: "topRight",
       });
       setPage(1);
       closeCreateModal();
-    } catch {
+    } catch (error) {
       notification.error({
-        message: "Could not create article.",
+        title: "Could not create article.",
+        description: getApiErrorDescription(error),
         placement: "topRight",
       });
     }
@@ -473,6 +475,7 @@ export function ArticlesPage() {
         confirmLoading={createArticleMutation.isPending}
         onOk={handleCreateArticle}
         onCancel={closeCreateModal}
+        forceRender
         destroyOnHidden
       >
         <Form form={createForm} layout="vertical" requiredMark={false}>

@@ -18,6 +18,7 @@ import {
 import { type CSSProperties, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "../../../shared/constants/routes";
+import { getApiErrorDescription } from "../../../shared/api/apiError";
 import { ContentFieldLimits } from "../constants/contentFieldLimits";
 import { useAdminCategories } from "../hooks/category/useAdminCategories";
 import { useCreateAdminCategory } from "../hooks/category/useCreateAdminCategory";
@@ -233,14 +234,15 @@ export function CategoriesPage() {
       });
 
       notification.success({
-        message: "Category created",
+        title: "Category created",
         placement: "topRight",
       });
       setPage(1);
       closeCreateModal();
-    } catch {
+    } catch (error) {
       notification.error({
-        message: "Could not create category.",
+        title: "Could not create category.",
+        description: getApiErrorDescription(error),
         placement: "topRight",
       });
     }
@@ -378,6 +380,7 @@ export function CategoriesPage() {
         confirmLoading={createCategoryMutation.isPending}
         onOk={handleCreateCategory}
         onCancel={closeCreateModal}
+        forceRender
         destroyOnHidden
       >
         <Form form={createForm} layout="vertical" requiredMark={false}>

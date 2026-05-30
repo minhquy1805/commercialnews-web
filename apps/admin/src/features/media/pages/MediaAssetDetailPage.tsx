@@ -25,6 +25,7 @@ import {
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ROUTES } from "../../../shared/constants/routes";
+import { getApiErrorDescription } from "../../../shared/api/apiError";
 import {
   AuthorizationAuditUser,
   type AuthorizationAuditUsersById,
@@ -42,7 +43,6 @@ import {
   formatDimensions,
   getArticleMediaPath,
   getMediaSourceUrl,
-  preWrapTextStyle,
   renderBooleanTag,
   renderDeletedTag,
   renderMediaDetailPreview,
@@ -256,13 +256,14 @@ export function MediaAssetDetailPage() {
       });
 
       notification.success({
-        message: "Media asset updated",
+        title: "Media asset updated",
         placement: "topRight",
       });
       closeEditModal();
-    } catch {
+    } catch (error) {
       notification.error({
-        message: "Could not update media asset.",
+        title: "Could not update media asset.",
+        description: getApiErrorDescription(error),
         placement: "topRight",
       });
     }
@@ -284,13 +285,14 @@ export function MediaAssetDetailPage() {
       });
 
       notification.success({
-        message: "Media asset deleted",
+        title: "Media asset deleted",
         placement: "topRight",
       });
       closeDeleteModal();
-    } catch {
+    } catch (error) {
       notification.error({
-        message: "Could not delete media asset.",
+        title: "Could not delete media asset.",
+        description: getApiErrorDescription(error),
         placement: "topRight",
       });
     }
@@ -305,12 +307,13 @@ export function MediaAssetDetailPage() {
       await restoreMediaAssetMutation.mutateAsync(selectedMediaId);
 
       notification.success({
-        message: "Media asset restored",
+        title: "Media asset restored",
         placement: "topRight",
       });
-    } catch {
+    } catch (error) {
       notification.error({
-        message: "Could not restore media asset.",
+        title: "Could not restore media asset.",
+        description: getApiErrorDescription(error),
         placement: "topRight",
       });
     }
@@ -534,12 +537,6 @@ export function MediaAssetDetailPage() {
         />
       </Card>
 
-      <Card title="Metadata JSON" style={{ marginTop: 16 }}>
-        <Typography.Text style={preWrapTextStyle}>
-          {asset.metadataJson || "N/A"}
-        </Typography.Text>
-      </Card>
-
       <Modal
         title="Edit media metadata"
         open={isEditModalOpen}
@@ -548,6 +545,7 @@ export function MediaAssetDetailPage() {
         confirmLoading={updateMediaAssetMutation.isPending}
         onOk={handleUpdateAsset}
         onCancel={closeEditModal}
+        forceRender
         destroyOnHidden
       >
         <Form form={editForm} layout="vertical" requiredMark={false}>
@@ -555,8 +553,11 @@ export function MediaAssetDetailPage() {
             <Input.TextArea autoSize={{ minRows: 2, maxRows: 4 }} />
           </Form.Item>
 
-          <Form.Item label="Metadata JSON" name="metadataJson">
-            <Input.TextArea autoSize={{ minRows: 4, maxRows: 10 }} />
+          <Form.Item label="Metadata" name="metadataJson">
+            <Input.TextArea
+              autoSize={{ minRows: 4, maxRows: 10 }}
+              placeholder="Optional JSON metadata"
+            />
           </Form.Item>
         </Form>
       </Modal>
@@ -569,6 +570,7 @@ export function MediaAssetDetailPage() {
         confirmLoading={softDeleteMediaAssetMutation.isPending}
         onOk={handleDeleteAsset}
         onCancel={closeDeleteModal}
+        forceRender
         destroyOnHidden
       >
         <Form form={deleteForm} layout="vertical" requiredMark={false}>

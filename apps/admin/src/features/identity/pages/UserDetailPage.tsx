@@ -33,6 +33,7 @@ import dayjs, { type Dayjs } from "dayjs";
 import { type CSSProperties, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ROUTES } from "../../../shared/constants/routes";
+import { getApiErrorDescription } from "../../../shared/api/apiError";
 import { USER_ACCOUNT_STATUSES } from "../../../shared/types/userAccountStatus";
 import {
   AuthorizationAuditUser,
@@ -509,14 +510,15 @@ export function UserDetailPage() {
       await action();
 
       notification.success({
-        message: successMessage,
+        title: successMessage,
         placement: "topRight",
       });
 
       return true;
-    } catch {
+    } catch (error) {
       notification.error({
-        message: errorMessage,
+        title: errorMessage,
+        description: getApiErrorDescription(error),
         placement: "topRight",
       });
 
@@ -1030,6 +1032,7 @@ export function UserDetailPage() {
           danger: true,
           loading: disableUserMutation.isPending,
         }}
+        forceRender
         onOk={handleDisableUser}
         onCancel={closeDisableModal}
       >
@@ -1074,6 +1077,7 @@ export function UserDetailPage() {
           danger: true,
           loading: lockUserMutation.isPending,
         }}
+        forceRender
         onOk={handleLockUser}
         onCancel={closeLockModal}
       >
@@ -1139,6 +1143,7 @@ export function UserDetailPage() {
         confirmLoading={assignRoleMutation.isPending}
         onOk={handleAssignRole}
         onCancel={closeAssignRoleModal}
+        forceRender
         destroyOnHidden
       >
         <Form form={assignRoleForm} layout="vertical" requiredMark={false}>

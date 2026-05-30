@@ -17,6 +17,7 @@ import {
 import { type CSSProperties, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "../../../shared/constants/routes";
+import { getApiErrorDescription } from "../../../shared/api/apiError";
 import {
   AuthorizationAuditUser,
   type AuthorizationAuditUsersById,
@@ -223,14 +224,15 @@ export function RolesPage() {
       });
 
       notification.success({
-        message: "Role created",
+        title: "Role created",
         placement: "topRight",
       });
       setPage(1);
       closeCreateModal();
-    } catch {
+    } catch (error) {
       notification.error({
-        message: "Could not create role.",
+        title: "Could not create role.",
+        description: getApiErrorDescription(error),
         placement: "topRight",
       });
     }
@@ -339,6 +341,7 @@ export function RolesPage() {
         confirmLoading={createRoleMutation.isPending}
         onOk={handleCreateRole}
         onCancel={closeCreateModal}
+        forceRender
         destroyOnHidden
       >
         <Form form={createForm} layout="vertical" requiredMark={false}>

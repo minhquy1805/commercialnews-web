@@ -59,13 +59,13 @@ export function AdminHeader() {
       await logoutMutation.mutateAsync();
 
       notification.success({
-        message: "Logged out",
+        title: "Logged out",
         description: "You have been logged out successfully.",
         placement: "topRight",
       });
     } catch {
       notification.warning({
-        message: "Local session cleared",
+        title: "Local session cleared",
         description:
           "Could not complete server logout, but your local session has been cleared.",
         placement: "topRight",
@@ -95,11 +95,6 @@ export function AdminHeader() {
         defaultSelectedKeys={["overview"]}
         items={headerItems}
         style={{ flex: 1, minWidth: 0 }}
-        onClick={({ key }) => {
-          // TODO: Lần sau nếu cần top navigation thì gắn navigate ở đây.
-          // Ví dụ: navigate(`/admin/${key}`);
-          console.log("Header menu clicked:", key);
-        }}
       />
 
       <Space size={12} style={{ paddingInline: 16 }}>

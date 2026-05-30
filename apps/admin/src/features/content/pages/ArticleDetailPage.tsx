@@ -31,9 +31,8 @@ import {
 import { type CSSProperties, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
-  getApiErrorDetailsMessage,
+  getApiErrorDescription,
   getApiErrorMessage,
-  getApiErrorTraceId,
 } from "../../../shared/api/apiError";
 import { ROUTES } from "../../../shared/constants/routes";
 import {
@@ -389,12 +388,9 @@ function getLifecycleEventColumns(
       title: "Metadata",
       dataIndex: "metadataJson",
       key: "metadataJson",
-      width: 300,
-      render: (metadataJson: string | null) => (
-        <Typography.Text style={wrappingTextStyle}>
-          {metadataJson || "N/A"}
-        </Typography.Text>
-      ),
+      width: 140,
+      render: (metadataJson: string | null) =>
+        metadataJson ? <Tag color="blue">Available</Tag> : <Tag>N/A</Tag>,
     },
   ];
 }
@@ -523,24 +519,16 @@ export function ArticleDetailPage() {
       await action();
 
       notification.success({
-        message: successMessage,
+        title: successMessage,
         placement: "topRight",
       });
 
       return true;
     } catch (error) {
-      const traceId = getApiErrorTraceId(error);
-      const detailsMessage = getApiErrorDetailsMessage(error);
-      const apiErrorMessage = getApiErrorMessage(error, errorMessage);
-      const descriptionParts = [
-        apiErrorMessage,
-        detailsMessage ? `Details: ${detailsMessage}` : null,
-        traceId ? `Trace ID: ${traceId}` : null,
-      ].filter(Boolean);
-
       notification.error({
-        message: errorMessage,
-        description: descriptionParts.join(" "),
+        key: `article-action-error-${errorMessage}`,
+        title: errorMessage,
+        description: getApiErrorDescription(error),
         placement: "topRight",
       });
 
@@ -555,7 +543,7 @@ export function ArticleDetailPage() {
 
     if (article.status !== ArticleStatuses.Draft) {
       notification.warning({
-        message: "Only draft articles can be edited.",
+        title: "Only draft articles can be edited.",
         description: "Unpublish the article before changing its content.",
         placement: "topRight",
       });
@@ -597,7 +585,7 @@ export function ArticleDetailPage() {
   function confirmCoverPicker() {
     if (!pickerCoverMediaId) {
       notification.warning({
-        message: "Select an image for the cover.",
+        title: "Select an image for the cover.",
         placement: "topRight",
       });
       return;
@@ -630,7 +618,7 @@ export function ArticleDetailPage() {
 
     if (article.status !== ArticleStatuses.Draft) {
       notification.warning({
-        message: "Only draft articles can be edited.",
+        title: "Only draft articles can be edited.",
         description: "Unpublish the article before changing its content.",
         placement: "topRight",
       });
@@ -668,7 +656,7 @@ export function ArticleDetailPage() {
           });
         } catch (error) {
           notification.warning({
-            message: "Article updated, but cover was not attached as primary.",
+            title: "Article updated, but cover was not attached as primary.",
             description: getApiErrorMessage(
               error,
               "Could not attach cover media to article media.",
@@ -1063,7 +1051,7 @@ export function ArticleDetailPage() {
       <Card title="Lifecycle events" style={{ marginTop: 16 }}>
         <Table<AdminArticleLifecycleEventItem>
           bordered
-          rowKey={(event) => String(event.lifecycleEventId)}
+          rowKey={(event) => String(event.eventId)}
           columns={lifecycleEventColumns}
           dataSource={lifecycleEventsQuery.data ?? []}
           loading={lifecycleEventsQuery.isFetching || auditUsersQuery.isFetching}
@@ -1092,6 +1080,7 @@ export function ArticleDetailPage() {
         }
         onOk={handleUpdateArticle}
         onCancel={closeEditModal}
+        forceRender
         destroyOnHidden
       >
         <Form form={editForm} layout="vertical" requiredMark={false}>
@@ -1266,6 +1255,7 @@ export function ArticleDetailPage() {
         okButtonProps={{ disabled: !pickerCoverMediaId }}
         onOk={confirmCoverPicker}
         onCancel={closeCoverPicker}
+        forceRender
         destroyOnHidden
       >
         <Table<AdminMediaAsset>
@@ -1321,6 +1311,7 @@ export function ArticleDetailPage() {
         confirmLoading={unpublishArticleMutation.isPending}
         onOk={handleUnpublishArticle}
         onCancel={closeUnpublishModal}
+        forceRender
         destroyOnHidden
       >
         <Form form={unpublishForm} layout="vertical" requiredMark={false}>

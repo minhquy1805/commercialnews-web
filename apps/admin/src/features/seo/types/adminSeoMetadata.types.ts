@@ -98,6 +98,8 @@ export type AdminArticleSeoSettings = AdminSeoMetadataBase & {
   isManualOverride: Nullable<boolean>;
   isIndexable: Nullable<boolean>;
   isActive: Nullable<boolean>;
+  slugRouteVersion: Nullable<number>;
+  seoMetadataVersion: Nullable<number>;
 };
 
 // ==============================
@@ -129,4 +131,6 @@ export type UpsertAdminArticleSeoSettingsResponse = AdminSeoMetadataBase & {
   isManualOverride: boolean;
   isIndexable: Nullable<boolean>;
   isActive: Nullable<boolean>;
+  slugRouteVersion: Nullable<number>;
+  seoMetadataVersion: Nullable<number>;
 };

@@ -119,11 +119,7 @@ export function AdminSidebar() {
 
           if (route.startsWith("/")) {
             navigate(route);
-            return;
           }
-
-          // Nhóm menu như "identity", "authorization", "content" chỉ dùng để mở/đóng submenu.
-          console.log("Sidebar group clicked:", route);
         }}
       />
     </Sider>

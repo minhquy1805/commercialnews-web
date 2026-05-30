@@ -181,7 +181,7 @@ export type AdminArticleRevisionListItem = {
 export type AdminArticleRevisionDetail = AdminArticleRevisionListItem;
 
 export type AdminArticleLifecycleEventItem = {
-  lifecycleEventId: number;
+  eventId: number;
   articleId: number;
   articleVersion: number;
   actionType: ArticleLifecycleActionType;

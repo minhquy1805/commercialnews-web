@@ -17,6 +17,7 @@ import {
 import { type CSSProperties, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "../../../shared/constants/routes";
+import { getApiErrorDescription } from "../../../shared/api/apiError";
 import {
   AuthorizationAuditUser,
   type AuthorizationAuditUsersById,
@@ -246,14 +247,15 @@ export function PermissionsPage() {
       });
 
       notification.success({
-        message: "Permission created",
+        title: "Permission created",
         placement: "topRight",
       });
       setPage(1);
       closeCreateModal();
-    } catch {
+    } catch (error) {
       notification.error({
-        message: "Could not create permission.",
+        title: "Could not create permission.",
+        description: getApiErrorDescription(error),
         placement: "topRight",
       });
     }
@@ -387,6 +389,7 @@ export function PermissionsPage() {
         confirmLoading={createPermissionMutation.isPending}
         onOk={handleCreatePermission}
         onCancel={closeCreateModal}
+        forceRender
         destroyOnHidden
       >
         <Form form={createForm} layout="vertical" requiredMark={false}>

@@ -27,6 +27,7 @@ import {
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ROUTES } from "../../../shared/constants/routes";
+import { getApiErrorDescription } from "../../../shared/api/apiError";
 import { useAdminArticleDetail } from "../../content/hooks/article/useAdminArticleDetail";
 import { ADMIN_MEDIA_TYPE_OPTIONS } from "../constants/mediaConstants";
 import { useAdminArticleMedia } from "../hooks/article-media/useAdminArticleMedia";
@@ -396,7 +397,7 @@ export function ArticleMediaPage() {
 
     if (!selectedPickerMediaId) {
       notification.warning({
-        message: "Select a media asset to attach.",
+        title: "Select a media asset to attach.",
         placement: "topRight",
       });
       return;
@@ -414,14 +415,15 @@ export function ArticleMediaPage() {
       });
 
       notification.success({
-        message: "Media attached to article",
+        title: "Media attached to article",
         placement: "topRight",
       });
       setPage(1);
       closeAttachModal();
-    } catch {
+    } catch (error) {
       notification.error({
-        message: "Could not attach media to article.",
+        title: "Could not attach media to article.",
+        description: getApiErrorDescription(error),
         placement: "topRight",
       });
     }
@@ -439,12 +441,13 @@ export function ArticleMediaPage() {
       });
 
       notification.success({
-        message: "Media detached from article",
+        title: "Media detached from article",
         placement: "topRight",
       });
-    } catch {
+    } catch (error) {
       notification.error({
-        message: "Could not detach media from article.",
+        title: "Could not detach media from article.",
+        description: getApiErrorDescription(error),
         placement: "topRight",
       });
     }
@@ -465,12 +468,13 @@ export function ArticleMediaPage() {
       });
 
       notification.success({
-        message: "Primary media updated",
+        title: "Primary media updated",
         placement: "topRight",
       });
-    } catch {
+    } catch (error) {
       notification.error({
-        message: "Could not update primary media.",
+        title: "Could not update primary media.",
+        description: getApiErrorDescription(error),
         placement: "topRight",
       });
     }
@@ -508,12 +512,13 @@ export function ArticleMediaPage() {
       });
 
       notification.success({
-        message: "Article media reordered",
+        title: "Article media reordered",
         placement: "topRight",
       });
-    } catch {
+    } catch (error) {
       notification.error({
-        message: "Could not reorder article media.",
+        title: "Could not reorder article media.",
+        description: getApiErrorDescription(error),
         placement: "topRight",
       });
     }
@@ -675,6 +680,7 @@ export function ArticleMediaPage() {
         okButtonProps={{ disabled: !selectedPickerMediaId }}
         onOk={handleAttachMedia}
         onCancel={closeAttachModal}
+        forceRender
         destroyOnHidden
       >
         <Form form={attachForm} layout="vertical" requiredMark={false}>

@@ -15,6 +15,7 @@ import {
 } from "antd";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { getApiErrorDescription } from "../../../shared/api/apiError";
 import {
   ADMIN_MEDIA_SORT_DIRECTIONS,
   ADMIN_MEDIA_TYPE_OPTIONS,
@@ -201,7 +202,7 @@ export function MediaAssetsPage() {
 
     if (!selectedUploadFile) {
       notification.warning({
-        message: "File is required.",
+        title: "File is required.",
         placement: "topRight",
       });
       return;
@@ -218,14 +219,15 @@ export function MediaAssetsPage() {
       });
 
       notification.success({
-        message: "Media asset uploaded",
+        title: "Media asset uploaded",
         placement: "topRight",
       });
       setPage(1);
       closeUploadModal();
-    } catch {
+    } catch (error) {
       notification.error({
-        message: "Could not upload media asset.",
+        title: "Could not upload media asset.",
+        description: getApiErrorDescription(error),
         placement: "topRight",
       });
     }
@@ -385,6 +387,7 @@ export function MediaAssetsPage() {
         confirmLoading={uploadMediaAssetMutation.isPending}
         onOk={handleUploadAsset}
         onCancel={closeUploadModal}
+        forceRender
         destroyOnHidden
       >
         <Form form={uploadForm} layout="vertical" requiredMark={false}>
