@@ -37,6 +37,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useLogoutAllSessions } from "../hooks/useLogoutAllSessions";
 import { useAuthStore } from "../stores/authStore";
 import { ROUTES } from "../../../shared/constants/routes";
+import { createTablePagination } from "../../../shared/pagination";
 import { getApiErrorDescription } from "../../../shared/api/apiError";
 import { USER_ACCOUNT_STATUSES } from "../../../shared/types/userAccountStatus";
 
@@ -521,17 +522,14 @@ export function MyProfilePage() {
               ? "Could not load login history."
               : "No login history.",
           }}
-          pagination={{
-            current: loginHistoryQuery.data?.page ?? loginHistoryPage,
-            pageSize:
-              loginHistoryQuery.data?.pageSize ?? loginHistoryPageSize,
-            total: loginHistoryQuery.data?.totalItems ?? 0,
-            showSizeChanger: true,
-            onChange: (page, pageSize) => {
-              setLoginHistoryPage(page);
-              setLoginHistoryPageSize(pageSize);
+          pagination={createTablePagination(
+            loginHistoryQuery.data,
+            { page: loginHistoryPage, pageSize: loginHistoryPageSize },
+            (nextPage, nextPageSize) => {
+              setLoginHistoryPage(nextPage);
+              setLoginHistoryPageSize(nextPageSize);
             },
-          }}
+          )}
           style={{ maxWidth: 960 }}
         />
 

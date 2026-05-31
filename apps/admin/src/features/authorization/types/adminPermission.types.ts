@@ -1,3 +1,5 @@
+import type { FlatPagedResult } from '../../../shared/pagination';
+
 export type AdminPermissionListRequest = {
   page?: number;
   pageSize?: number;
@@ -23,12 +25,7 @@ export type AdminPermissionListItemResponse = {
   updatedByUserId: number | null;
 };
 
-export type AdminPermissionListResponse = {
-  items: AdminPermissionListItemResponse[];
-  page: number;
-  pageSize: number;
-  totalItems: number;
-};
+export type AdminPermissionListResponse = FlatPagedResult<AdminPermissionListItemResponse>;
 
 export type AdminCreatePermissionRequest = {
   key: string;

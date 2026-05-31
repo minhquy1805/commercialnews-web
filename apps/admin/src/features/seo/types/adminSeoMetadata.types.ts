@@ -1,3 +1,4 @@
+import type { FlatPagedResult } from '../../../shared/pagination';
 import type {
   SeoResourceType,
   SeoScope,
@@ -63,12 +64,7 @@ export type AdminSeoMetadataListItem = AdminSeoMetadataBase & {
   updatedByUserId: Nullable<number>;
 };
 
-export type AdminSeoMetadataPagedResult = {
-  items: AdminSeoMetadataListItem[];
-  page: number;
-  pageSize: number;
-  totalItems: number;
-};
+export type AdminSeoMetadataPagedResult = FlatPagedResult<AdminSeoMetadataListItem>;
 
 export type AdminSeoMetadataFilter = {
   scope?: Nullable<SeoScope>;

@@ -1,3 +1,5 @@
+import type { FlatPagedResult } from '../../../shared/pagination';
+
 export type AdminMediaAssetSortDirection = 'ASC' | 'DESC';
 
 export type AdminMediaAssetType = 'Image' | 'Video' | 'File';
@@ -53,12 +55,7 @@ export type AdminMediaAssetsQuery = {
   sortDirection?: AdminMediaAssetSortDirection;
 };
 
-export type AdminMediaAssetsResponse = {
-  items: AdminMediaAsset[];
-  page: number;
-  pageSize: number;
-  totalItems: number;
-};
+export type AdminMediaAssetsResponse = FlatPagedResult<AdminMediaAsset>;
 
 export type CreateMediaAssetRequest = {
   storageProvider: AdminMediaStorageProvider;

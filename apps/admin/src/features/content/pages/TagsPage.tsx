@@ -17,6 +17,7 @@ import {
 import { type CSSProperties, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "../../../shared/constants/routes";
+import { createTablePagination } from "../../../shared/pagination";
 import { getApiErrorDescription } from "../../../shared/api/apiError";
 import { ContentFieldLimits } from "../constants/contentFieldLimits";
 import { useAdminTags } from "../hooks/tag/useAdminTags";
@@ -292,17 +293,15 @@ export function TagsPage() {
               ? "Could not load tags."
               : "No tags found.",
           }}
-          pagination={{
-            current: tagsQuery.data?.pageInfo.page ?? page,
-            pageSize: tagsQuery.data?.pageInfo.pageSize ?? pageSize,
-            total: tagsQuery.data?.pageInfo.totalItems ?? 0,
-            showSizeChanger: true,
-            showTotal: (total) => `${total} tags`,
-            onChange: (nextPage, nextPageSize) => {
+          pagination={createTablePagination(
+            tagsQuery.data,
+            { page, pageSize },
+            (nextPage, nextPageSize) => {
               setPage(nextPage);
               setPageSize(nextPageSize);
             },
-          }}
+            (total) => `${total} tags`,
+          )}
           style={{
             border: "1px solid #f0f0f0",
             borderRadius: 8,

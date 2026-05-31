@@ -35,6 +35,7 @@ import {
   getApiErrorMessage,
 } from "../../../shared/api/apiError";
 import { ROUTES } from "../../../shared/constants/routes";
+import { createTablePagination } from "../../../shared/pagination";
 import {
   AuthorizationAuditUser,
   type AuthorizationAuditUsersById,
@@ -1280,18 +1281,16 @@ export function ArticleDetailPage() {
               ? "Could not load image assets."
               : "No image assets found.",
           }}
-          pagination={{
-            current: coverPickerQuery.data?.page ?? coverPickerPage,
-            pageSize: coverPickerQuery.data?.pageSize ?? coverPickerPageSize,
-            total: coverPickerQuery.data?.totalItems ?? 0,
-            showSizeChanger: true,
-            showTotal: (total) => `${total} images`,
-            onChange: (nextPage, nextPageSize) => {
+          pagination={createTablePagination(
+            coverPickerQuery.data,
+            { page: coverPickerPage, pageSize: coverPickerPageSize },
+            (nextPage, nextPageSize) => {
               setCoverPickerPage(nextPage);
               setCoverPickerPageSize(nextPageSize);
               setPickerCoverMediaId(null);
             },
-          }}
+            (total) => `${total} images`,
+          )}
           style={{
             border: "1px solid #f0f0f0",
             borderRadius: 8,

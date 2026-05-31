@@ -2,6 +2,7 @@ import { Card, Input, InputNumber, Select, Space, Table, Tag, type TableProps, T
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "../../../shared/constants/routes";
+import { createTablePagination } from "../../../shared/pagination";
 import {
   SEO_RESOURCE_TYPE_SELECT_OPTIONS,
   SEO_SCOPE_SELECT_OPTIONS,
@@ -277,17 +278,15 @@ export function SeoMetadataPage() {
               ? "Could not load SEO metadata."
               : "No SEO metadata found.",
           }}
-          pagination={{
-            current: metadataQuery.data?.page ?? page,
-            pageSize: metadataQuery.data?.pageSize ?? pageSize,
-            total: metadataQuery.data?.totalItems ?? 0,
-            showSizeChanger: true,
-            showTotal: (total) => `${total} metadata records`,
-            onChange: (nextPage, nextPageSize) => {
+          pagination={createTablePagination(
+            metadataQuery.data,
+            { page, pageSize },
+            (nextPage, nextPageSize) => {
               setPage(nextPage);
               setPageSize(nextPageSize);
             },
-          }}
+            (total) => `${total} metadata records`,
+          )}
           style={{
             border: "1px solid #f0f0f0",
             borderRadius: 8,

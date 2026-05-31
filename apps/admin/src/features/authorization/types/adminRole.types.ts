@@ -1,3 +1,5 @@
+import type { FlatPagedResult } from '../../../shared/pagination';
+
 export type AdminRoleListRequest = {
   page?: number;
   pageSize?: number;
@@ -20,12 +22,7 @@ export type AdminRoleListItemResponse = {
   updatedByUserId: number | null;
 };
 
-export type AdminRoleListResponse = {
-  items: AdminRoleListItemResponse[];
-  page: number;
-  pageSize: number;
-  totalItems: number;
-};
+export type AdminRoleListResponse = FlatPagedResult<AdminRoleListItemResponse>;
 
 export type AdminCreateRoleRequest = {
   name: string;

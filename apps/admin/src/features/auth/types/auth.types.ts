@@ -1,3 +1,4 @@
+import type { FlatPagedResult } from '../../../shared/pagination';
 import type { UserAccountStatus } from "../../../shared/types/userAccountStatus";
 
 export type LoginRequest = {
@@ -70,12 +71,7 @@ export type LoginHistoryItemResponse = {
   correlationId: string | null;
 };
 
-export type GetMyLoginHistoryResponse = {
-  items: LoginHistoryItemResponse[];
-  page: number;
-  pageSize: number;
-  totalItems: number;
-};
+export type GetMyLoginHistoryResponse = FlatPagedResult<LoginHistoryItemResponse>;
 
 export type LogoutResponse = {
   userId: number;

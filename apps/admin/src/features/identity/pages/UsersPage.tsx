@@ -13,6 +13,7 @@ import {
 import { type CSSProperties, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "../../../shared/constants/routes";
+import { createTablePagination } from "../../../shared/pagination";
 import { useAdminUserRolesList } from "../../authorization/hooks/useAdminUserRoles";
 import type { AdminUserRoleItemResponse } from "../../authorization/types/adminUserRole.types";
 import { useAdminUsers } from "../hooks/useAdminUsers";
@@ -296,17 +297,15 @@ export function UsersPage() {
               ? "Could not load users."
               : "No users found.",
           }}
-          pagination={{
-            current: usersQuery.data?.page ?? page,
-            pageSize: usersQuery.data?.pageSize ?? pageSize,
-            total: usersQuery.data?.totalItems ?? 0,
-            showSizeChanger: true,
-            showTotal: (total) => `${total} users`,
-            onChange: (nextPage, nextPageSize) => {
+          pagination={createTablePagination(
+            usersQuery.data,
+            { page, pageSize },
+            (nextPage, nextPageSize) => {
               setPage(nextPage);
               setPageSize(nextPageSize);
             },
-          }}
+            (total) => `${total} users`,
+          )}
           style={{
             border: "1px solid #f0f0f0",
             borderRadius: 8,

@@ -1,3 +1,4 @@
+import type { FlatPagedResult } from '../../../shared/pagination';
 import type {
   AdminMediaAssetSortDirection,
   AdminMediaAssetType,
@@ -121,12 +122,7 @@ export type AdminArticleMediaItem = {
   deletedBy?: string | null;
 };
 
-export type AdminArticleMediaListResponse = {
-  items: AdminArticleMediaItem[];
-  page: number;
-  pageSize: number;
-  totalItems: number;
-};
+export type AdminArticleMediaListResponse = FlatPagedResult<AdminArticleMediaItem>;
 
 export type AdminArticlePrimaryMediaResponse = AdminArticleMediaItem;
 

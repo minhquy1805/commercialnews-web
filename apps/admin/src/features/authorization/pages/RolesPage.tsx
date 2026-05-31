@@ -17,6 +17,7 @@ import {
 import { type CSSProperties, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "../../../shared/constants/routes";
+import { createTablePagination } from "../../../shared/pagination";
 import { getApiErrorDescription } from "../../../shared/api/apiError";
 import {
   AuthorizationAuditUser,
@@ -308,17 +309,15 @@ export function RolesPage() {
               ? "Could not load roles."
               : "No roles found.",
           }}
-          pagination={{
-            current: rolesQuery.data?.page ?? page,
-            pageSize: rolesQuery.data?.pageSize ?? pageSize,
-            total: rolesQuery.data?.totalItems ?? 0,
-            showSizeChanger: true,
-            showTotal: (total) => `${total} roles`,
-            onChange: (nextPage, nextPageSize) => {
+          pagination={createTablePagination(
+            rolesQuery.data,
+            { page, pageSize },
+            (nextPage, nextPageSize) => {
               setPage(nextPage);
               setPageSize(nextPageSize);
             },
-          }}
+            (total) => `${total} roles`,
+          )}
           style={{
             border: "1px solid #f0f0f0",
             borderRadius: 8,

@@ -16,6 +16,7 @@ import {
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getApiErrorDescription } from "../../../shared/api/apiError";
+import { createTablePagination } from "../../../shared/pagination";
 import {
   ADMIN_MEDIA_SORT_DIRECTIONS,
   ADMIN_MEDIA_TYPE_OPTIONS,
@@ -356,17 +357,15 @@ export function MediaAssetsPage() {
               ? "Could not load media assets."
               : "No media assets found.",
           }}
-          pagination={{
-            current: mediaAssetsQuery.data?.page ?? page,
-            pageSize: mediaAssetsQuery.data?.pageSize ?? pageSize,
-            total: mediaAssetsQuery.data?.totalItems ?? 0,
-            showSizeChanger: true,
-            showTotal: (total) => `${total} media assets`,
-            onChange: (nextPage, nextPageSize) => {
+          pagination={createTablePagination(
+            mediaAssetsQuery.data,
+            { page, pageSize },
+            (nextPage, nextPageSize) => {
               setPage(nextPage);
               setPageSize(nextPageSize);
             },
-          }}
+            (total) => `${total} media assets`,
+          )}
           style={{
             border: "1px solid #f0f0f0",
             borderRadius: 8,

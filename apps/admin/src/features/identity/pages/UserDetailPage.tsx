@@ -33,6 +33,7 @@ import dayjs, { type Dayjs } from "dayjs";
 import { type CSSProperties, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ROUTES } from "../../../shared/constants/routes";
+import { createTablePagination } from "../../../shared/pagination";
 import { getApiErrorDescription } from "../../../shared/api/apiError";
 import { USER_ACCOUNT_STATUSES } from "../../../shared/types/userAccountStatus";
 import {
@@ -882,16 +883,14 @@ export function UserDetailPage() {
               ? "Could not load login history."
               : "No login history found.",
           }}
-          pagination={{
-            current: loginHistoryQuery.data?.page ?? loginHistoryPage,
-            pageSize: loginHistoryQuery.data?.pageSize ?? loginHistoryPageSize,
-            total: loginHistoryQuery.data?.totalItems ?? 0,
-            showSizeChanger: true,
-            onChange: (page, pageSize) => {
-              setLoginHistoryPage(page);
-              setLoginHistoryPageSize(pageSize);
+          pagination={createTablePagination(
+            loginHistoryQuery.data,
+            { page: loginHistoryPage, pageSize: loginHistoryPageSize },
+            (nextPage, nextPageSize) => {
+              setLoginHistoryPage(nextPage);
+              setLoginHistoryPageSize(nextPageSize);
             },
-          }}
+          )}
         />
       </Card>
 

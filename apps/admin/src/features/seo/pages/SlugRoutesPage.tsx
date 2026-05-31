@@ -18,6 +18,7 @@ import {
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "../../../shared/constants/routes";
+import { createTablePagination } from "../../../shared/pagination";
 import { getApiErrorDescription } from "../../../shared/api/apiError";
 import {
   SEO_DEFAULTS,
@@ -474,17 +475,15 @@ export function SlugRoutesPage() {
               ? "Could not load slug routes."
               : "No slug routes found.",
           }}
-          pagination={{
-            current: slugRoutesQuery.data?.page ?? page,
-            pageSize: slugRoutesQuery.data?.pageSize ?? pageSize,
-            total: slugRoutesQuery.data?.totalItems ?? 0,
-            showSizeChanger: true,
-            showTotal: (total) => `${total} slug routes`,
-            onChange: (nextPage, nextPageSize) => {
+          pagination={createTablePagination(
+            slugRoutesQuery.data,
+            { page, pageSize },
+            (nextPage, nextPageSize) => {
               setPage(nextPage);
               setPageSize(nextPageSize);
             },
-          }}
+            (total) => `${total} slug routes`,
+          )}
           style={{
             border: "1px solid #f0f0f0",
             borderRadius: 8,

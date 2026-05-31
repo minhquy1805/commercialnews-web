@@ -17,6 +17,7 @@ import {
 import { type CSSProperties, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "../../../shared/constants/routes";
+import { createTablePagination } from "../../../shared/pagination";
 import { getApiErrorDescription } from "../../../shared/api/apiError";
 import {
   AuthorizationAuditUser,
@@ -353,17 +354,15 @@ export function PermissionsPage() {
               ? "Could not load permissions."
               : "No permissions found.",
           }}
-          pagination={{
-            current: permissionsQuery.data?.page ?? page,
-            pageSize: permissionsQuery.data?.pageSize ?? pageSize,
-            total: permissionsQuery.data?.totalItems ?? 0,
-            showSizeChanger: true,
-            showTotal: (total) => `${total} permissions`,
-            onChange: (nextPage, nextPageSize) => {
+          pagination={createTablePagination(
+            permissionsQuery.data,
+            { page, pageSize },
+            (nextPage, nextPageSize) => {
               setPage(nextPage);
               setPageSize(nextPageSize);
             },
-          }}
+            (total) => `${total} permissions`,
+          )}
           style={{
             border: "1px solid #f0f0f0",
             borderRadius: 8,

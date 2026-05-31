@@ -1,11 +1,9 @@
-export type ContentPageInfo = {
-  page: number;
-  pageSize: number;
-  totalItems: number;
+import type { PageInfo, PageInfoPagedResult } from '../../../shared/pagination';
+
+export type ContentPageInfo = PageInfo & {
   totalPages: number;
 };
 
-export type ContentPagedResponse<T> = {
-  items: T[];
+export type ContentPagedResponse<T> = PageInfoPagedResult<T> & {
   pageInfo: ContentPageInfo;
 };

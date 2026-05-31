@@ -17,6 +17,7 @@ import {
 import { type CSSProperties, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "../../../shared/constants/routes";
+import { createTablePagination } from "../../../shared/pagination";
 import { getApiErrorDescription } from "../../../shared/api/apiError";
 import {
   AuthorizationAuditUser,
@@ -441,17 +442,15 @@ export function ArticlesPage() {
               ? "Could not load articles."
               : "No articles found.",
           }}
-          pagination={{
-            current: articlesQuery.data?.pageInfo.page ?? page,
-            pageSize: articlesQuery.data?.pageInfo.pageSize ?? pageSize,
-            total: articlesQuery.data?.pageInfo.totalItems ?? 0,
-            showSizeChanger: true,
-            showTotal: (total) => `${total} articles`,
-            onChange: (nextPage, nextPageSize) => {
+          pagination={createTablePagination(
+            articlesQuery.data,
+            { page, pageSize },
+            (nextPage, nextPageSize) => {
               setPage(nextPage);
               setPageSize(nextPageSize);
             },
-          }}
+            (total) => `${total} articles`,
+          )}
           style={{
             border: "1px solid #f0f0f0",
             borderRadius: 8,

@@ -1,3 +1,4 @@
+import type { FlatPagedResult } from '../../../shared/pagination';
 import type {
   SeoResourceType,
   SeoScope,
@@ -49,12 +50,7 @@ export type AdminSlugRouteListItem = AdminSlugRouteBase & {
   slugId: number;
 };
 
-export type AdminSlugRoutePagedResult = {
-  items: AdminSlugRouteListItem[];
-  page: number;
-  pageSize: number;
-  totalItems: number;
-};
+export type AdminSlugRoutePagedResult = FlatPagedResult<AdminSlugRouteListItem>;
 
 export type AdminSlugRouteFilter = {
   scope?: Nullable<SeoScope>;

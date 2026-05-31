@@ -27,6 +27,7 @@ import {
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ROUTES } from "../../../shared/constants/routes";
+import { createTablePagination } from "../../../shared/pagination";
 import { getApiErrorDescription } from "../../../shared/api/apiError";
 import { useAdminArticleDetail } from "../../content/hooks/article/useAdminArticleDetail";
 import { ADMIN_MEDIA_TYPE_OPTIONS } from "../constants/mediaConstants";
@@ -652,17 +653,15 @@ export function ArticleMediaPage() {
               ? "Could not load article media."
               : "No media attached.",
           }}
-          pagination={{
-            current: articleMediaQuery.data?.page ?? page,
-            pageSize: articleMediaQuery.data?.pageSize ?? pageSize,
-            total: articleMediaQuery.data?.totalItems ?? 0,
-            showSizeChanger: true,
-            showTotal: (total) => `${total} attachments`,
-            onChange: (nextPage, nextPageSize) => {
+          pagination={createTablePagination(
+            articleMediaQuery.data,
+            { page, pageSize },
+            (nextPage, nextPageSize) => {
               setPage(nextPage);
               setPageSize(nextPageSize);
             },
-          }}
+            (total) => `${total} attachments`,
+          )}
           style={{
             border: "1px solid #f0f0f0",
             borderRadius: 8,
@@ -730,18 +729,16 @@ export function ArticleMediaPage() {
                 ? "Could not load media assets."
                 : "No media assets found.",
             }}
-            pagination={{
-              current: mediaPickerQuery.data?.page ?? pickerPage,
-              pageSize: mediaPickerQuery.data?.pageSize ?? pickerPageSize,
-              total: mediaPickerQuery.data?.totalItems ?? 0,
-              showSizeChanger: true,
-              showTotal: (total) => `${total} media assets`,
-              onChange: (nextPage, nextPageSize) => {
+            pagination={createTablePagination(
+              mediaPickerQuery.data,
+              { page: pickerPage, pageSize: pickerPageSize },
+              (nextPage, nextPageSize) => {
                 setPickerPage(nextPage);
                 setPickerPageSize(nextPageSize);
                 setSelectedPickerMediaId(null);
               },
-            }}
+              (total) => `${total} media assets`,
+            )}
             style={{
               border: "1px solid #f0f0f0",
               borderRadius: 8,

@@ -18,6 +18,7 @@ import {
 import { type CSSProperties, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "../../../shared/constants/routes";
+import { createTablePagination } from "../../../shared/pagination";
 import { getApiErrorDescription } from "../../../shared/api/apiError";
 import { ContentFieldLimits } from "../constants/contentFieldLimits";
 import { useAdminCategories } from "../hooks/category/useAdminCategories";
@@ -347,17 +348,15 @@ export function CategoriesPage() {
               ? "Could not load categories."
               : "No categories found.",
           }}
-          pagination={{
-            current: categoriesQuery.data?.pageInfo.page ?? page,
-            pageSize: categoriesQuery.data?.pageInfo.pageSize ?? pageSize,
-            total: categoriesQuery.data?.pageInfo.totalItems ?? 0,
-            showSizeChanger: true,
-            showTotal: (total) => `${total} categories`,
-            onChange: (nextPage, nextPageSize) => {
+          pagination={createTablePagination(
+            categoriesQuery.data,
+            { page, pageSize },
+            (nextPage, nextPageSize) => {
               setPage(nextPage);
               setPageSize(nextPageSize);
             },
-          }}
+            (total) => `${total} categories`,
+          )}
           style={{
             border: "1px solid #f0f0f0",
             borderRadius: 8,

@@ -1,3 +1,4 @@
+import type { FlatPagedResult } from '../../../shared/pagination';
 import type { UserAccountStatus } from "../../../shared/types/userAccountStatus";
 
 export type AdminUserListRequest = {
@@ -27,12 +28,7 @@ export type AdminUserListItemResponse = {
   version: number;
 };
 
-export type AdminUserListResponse = {
-  items: AdminUserListItemResponse[];
-  page: number;
-  pageSize: number;
-  totalItems: number;
-};
+export type AdminUserListResponse = FlatPagedResult<AdminUserListItemResponse>;
 
 export type AdminUserDetailResponse = AdminUserListItemResponse;
 
@@ -76,12 +72,8 @@ export type AdminUserLoginHistoryItemResponse = {
   correlationId: string | null;
 };
 
-export type AdminUserLoginHistoryResponse = {
+export type AdminUserLoginHistoryResponse = FlatPagedResult<AdminUserLoginHistoryItemResponse> & {
   userId: number;
-  items: AdminUserLoginHistoryItemResponse[];
-  page: number;
-  pageSize: number;
-  totalItems: number;
 };
 
 export type AdminUserSecuritySummaryResponse = {
