@@ -1,23 +1,18 @@
 import {
-  BellOutlined,
-  GlobalOutlined,
   LogoutOutlined,
-  SearchOutlined,
   UserOutlined,
 } from "@ant-design/icons";
 import type { MenuProps } from "antd";
 import {
   App,
   Avatar,
-  Badge,
   Button,
-  Input,
   Layout,
   Menu,
   Space,
   Tooltip,
 } from "antd";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useMyProfile } from "../../../features/auth/hooks/useMyProfile";
 import { useLogout } from "../../../features/auth/hooks/useLogout";
 import { ROUTES } from "../../constants/routes";
@@ -26,33 +21,77 @@ import { useQueryClient } from "@tanstack/react-query";
 
 const { Header } = Layout;
 
-const headerItems: MenuProps["items"] = [
+type HeaderNavItem = {
+  key: string;
+  label: string;
+  path: string;
+  isActive: (pathname: string) => boolean;
+};
+
+const isSectionPath = (pathname: string, sectionPath: string) =>
+  pathname === sectionPath || pathname.startsWith(`${sectionPath}/`);
+
+const headerNavItems: HeaderNavItem[] = [
   {
-    key: "overview",
-    label: "Overview",
+    key: "homepage",
+    label: "Homepage",
+    path: ROUTES.DASHBOARD,
+    isActive: (pathname) => pathname === ROUTES.DASHBOARD,
   },
   {
-    key: "operations",
-    label: "Operations",
+    key: "content",
+    label: "Content",
+    path: ROUTES.CONTENT_NEWS,
+    isActive: (pathname) => isSectionPath(pathname, "/content"),
   },
   {
-    key: "reports",
-    label: "Reports",
+    key: "media",
+    label: "Media",
+    path: ROUTES.MEDIA_ASSETS,
+    isActive: (pathname) => isSectionPath(pathname, ROUTES.MEDIA),
+  },
+  {
+    key: "seo",
+    label: "SEO",
+    path: ROUTES.SEO_METADATA,
+    isActive: (pathname) => isSectionPath(pathname, ROUTES.SEO),
+  },
+  {
+    key: "moderation-action",
+    label: "Moderation action",
+    path: ROUTES.INTERACTION_MODERATION_CASES,
+    isActive: (pathname) =>
+      isSectionPath(pathname, ROUTES.INTERACTION_MODERATION_CASES),
   },
 ];
 
-
+const headerItems: MenuProps["items"] = headerNavItems.map((item) => ({
+  key: item.key,
+  label: item.label,
+}));
 
 export function AdminHeader() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { data: profile, isLoading } = useMyProfile();
 
   const { notification } = App.useApp();
   const queryClient = useQueryClient();
 
-  
   const clearAuth = useAuthStore((state) => state.clearAuth);
   const logoutMutation = useLogout();
+
+  const selectedHeaderKey = headerNavItems.find((item) =>
+    item.isActive(location.pathname),
+  )?.key;
+
+  const handleHeaderMenuClick: MenuProps["onClick"] = ({ key }) => {
+    const item = headerNavItems.find((navItem) => navItem.key === key);
+
+    if (item) {
+      navigate(item.path);
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -92,40 +131,13 @@ export function AdminHeader() {
       <Menu
         theme="dark"
         mode="horizontal"
-        defaultSelectedKeys={["overview"]}
+        selectedKeys={selectedHeaderKey ? [selectedHeaderKey] : []}
         items={headerItems}
+        onClick={handleHeaderMenuClick}
         style={{ flex: 1, minWidth: 0 }}
       />
 
       <Space size={12} style={{ paddingInline: 16 }}>
-        <Input
-          allowClear
-          size="middle"
-          prefix={<SearchOutlined />}
-          placeholder="Search..."
-          style={{ width: 220 }}
-        />
-
-        <Tooltip title="Language">
-          <Button
-            type="text"
-            shape="circle"
-            icon={<GlobalOutlined />}
-            style={{ color: "#ffffff" }}
-          />
-        </Tooltip>
-
-        <Tooltip title="Notifications">
-          <Badge count={3} size="small" offset={[-2, 4]}>
-            <Button
-              type="text"
-              shape="circle"
-              icon={<BellOutlined />}
-              style={{ color: "#ffffff" }}
-            />
-          </Badge>
-        </Tooltip>
-
         <Space size={8}>
           <Tooltip title="My Profile">
             <Avatar

@@ -1,17 +1,13 @@
 import type { Key, ReactNode } from "react";
 import { useState } from "react";
 import {
-  AuditOutlined,
   DashboardOutlined,
   FileTextOutlined,
   GlobalOutlined,
   IdcardOutlined,
-  LockOutlined,
-  NotificationOutlined,
+  MessageOutlined,
   PictureOutlined,
   SafetyCertificateOutlined,
-  SettingOutlined,
-  TeamOutlined,
   UserOutlined,
 } from "@ant-design/icons";
 import type { MenuProps } from "antd";
@@ -77,11 +73,10 @@ const sidebarItems: MenuItem[] = [
     getItem("Slug routes", ROUTES.SEO_SLUG_ROUTES),
   ]),
 
-  getItem("Notifications", "/notifications", <NotificationOutlined />),
-  getItem("Audit Logs", "/audit/logs", <AuditOutlined />),
-  getItem("Security", "/security", <LockOutlined />),
-  getItem("Team", "/team", <TeamOutlined />),
-  getItem("Settings", "/settings", <SettingOutlined />),
+  getItem("Interaction", "interaction", <MessageOutlined />, [
+    getItem("Comments", ROUTES.INTERACTION_COMMENTS),
+    getItem("Moderation cases", ROUTES.INTERACTION_MODERATION_CASES),
+  ]),
 ];
 
 function getOpenKeys(pathname: string): string[] {
@@ -90,6 +85,7 @@ function getOpenKeys(pathname: string): string[] {
   if (pathname.startsWith("/content")) return ["content"];
   if (pathname.startsWith("/media")) return ["media"];
   if (pathname.startsWith("/seo")) return ["seo"];
+  if (pathname.startsWith("/interaction")) return ["interaction"];
 
   return [];
 }

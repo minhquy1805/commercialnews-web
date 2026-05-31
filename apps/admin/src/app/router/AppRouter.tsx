@@ -26,6 +26,11 @@ import { SeoMetadataDetailPage } from "../../features/seo/pages/SeoMetadataDetai
 import { SeoMetadataPage } from "../../features/seo/pages/SeoMetadataPage";
 import { SlugRouteDetailPage } from "../../features/seo/pages/SlugRouteDetailPage";
 import { SlugRoutesPage } from "../../features/seo/pages/SlugRoutesPage";
+import { InteractionArticleStatsPage } from "../../features/interaction/pages/InteractionArticleStatsPage";
+import { InteractionCommentDetailPage } from "../../features/interaction/pages/InteractionCommentDetailPage";
+import { InteractionCommentsPage } from "../../features/interaction/pages/InteractionCommentsPage";
+import { InteractionModerationCaseDetailPage } from "../../features/interaction/pages/InteractionModerationCaseDetailPage";
+import { InteractionModerationCasesPage } from "../../features/interaction/pages/InteractionModerationCasesPage";
 
 export function AppRouter() {
   return (
@@ -113,6 +118,30 @@ export function AppRouter() {
         <Route
           path={ROUTES.SEO_ARTICLE_SETTINGS}
           element={<ArticleSeoSettingsPage />}
+        />
+        <Route
+          path={ROUTES.INTERACTION}
+          element={<Navigate to={ROUTES.INTERACTION_COMMENTS} replace />}
+        />
+        <Route
+          path={ROUTES.INTERACTION_COMMENTS}
+          element={<InteractionCommentsPage />}
+        />
+        <Route
+          path={ROUTES.INTERACTION_COMMENT_DETAIL}
+          element={<InteractionCommentDetailPage />}
+        />
+        <Route
+          path={ROUTES.INTERACTION_MODERATION_CASES}
+          element={<InteractionModerationCasesPage />}
+        />
+        <Route
+          path={ROUTES.INTERACTION_MODERATION_CASE_DETAIL}
+          element={<InteractionModerationCaseDetailPage />}
+        />
+        <Route
+          path={ROUTES.INTERACTION_ARTICLE_STATS}
+          element={<InteractionArticleStatsPage />}
         />
       </Route>
     </Routes>

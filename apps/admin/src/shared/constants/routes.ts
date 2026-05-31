@@ -25,4 +25,10 @@ export const ROUTES = {
   SEO_SLUG_ROUTES: "/seo/slug-routes",
   SEO_SLUG_ROUTE_DETAIL: "/seo/slug-routes/:slugId",
   SEO_ARTICLE_SETTINGS: "/seo/articles/:articlePublicId",
+  INTERACTION: "/interaction",
+  INTERACTION_COMMENTS: "/interaction/comments",
+  INTERACTION_COMMENT_DETAIL: "/interaction/comments/:commentPublicId",
+  INTERACTION_MODERATION_CASES: "/interaction/moderation-cases",
+  INTERACTION_MODERATION_CASE_DETAIL: "/interaction/moderation-cases/:casePublicId",
+  INTERACTION_ARTICLE_STATS: "/interaction/articles/:articlePublicId/stats",
 } as const;
