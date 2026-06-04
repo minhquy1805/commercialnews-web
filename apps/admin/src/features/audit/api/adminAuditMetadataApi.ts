@@ -7,13 +7,19 @@ import type {
 const BASE_URL = '/api/v1/admin/audit';
 
 export const adminAuditMetadataApi = {
-  getModules() {
-    return httpClient.get<GetAdminAuditModulesResponse>(`${BASE_URL}/modules`);
+  async getModules() {
+    const response = await httpClient.get<GetAdminAuditModulesResponse>(
+      `${BASE_URL}/modules`,
+    );
+
+    return response.data;
   },
 
-  getModuleActions(sourceModule: string) {
-    return httpClient.get<GetAdminAuditModuleActionsResponse>(
-      `${BASE_URL}/modules/${sourceModule}/actions`,
+  async getModuleActions(sourceModule: string) {
+    const response = await httpClient.get<GetAdminAuditModuleActionsResponse>(
+      `${BASE_URL}/modules/${encodeURIComponent(sourceModule)}/actions`,
     );
+
+    return response.data;
   },
 };

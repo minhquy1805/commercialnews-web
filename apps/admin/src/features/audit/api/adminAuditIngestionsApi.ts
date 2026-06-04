@@ -10,30 +10,38 @@ import type {
 const BASE_URL = '/api/v1/admin/audit/ingestions';
 
 export const adminAuditIngestionsApi = {
-  getIngestions(params: GetAdminAuditIngestionListRequest) {
-    return httpClient.get<AdminAuditIngestionsPagedResponse>(BASE_URL, {
-      params,
-    });
+  async getIngestions(params: GetAdminAuditIngestionListRequest) {
+    const response = await httpClient.get<AdminAuditIngestionsPagedResponse>(
+      BASE_URL,
+      { params },
+    );
+
+    return response.data;
   },
 
-  getFailedIngestions(params: GetFailedAdminAuditIngestionListRequest) {
-    return httpClient.get<AdminFailedAuditIngestionsPagedResponse>(
-      `${BASE_URL}/failed`,
-      {
-        params,
-      },
-    );
+  async getFailedIngestions(params: GetFailedAdminAuditIngestionListRequest) {
+    const response =
+      await httpClient.get<AdminFailedAuditIngestionsPagedResponse>(
+        `${BASE_URL}/failed`,
+        { params },
+      );
+
+    return response.data;
   },
 
-  getIngestionByPublicId(publicId: string) {
-    return httpClient.get<AdminAuditIngestionDetail>(
-      `${BASE_URL}/${publicId}`,
+  async getIngestionByPublicId(publicId: string) {
+    const response = await httpClient.get<AdminAuditIngestionDetail>(
+      `${BASE_URL}/${encodeURIComponent(publicId)}`,
     );
+
+    return response.data;
   },
 
-  getIngestionByMessageId(messageId: string) {
-    return httpClient.get<AdminAuditIngestionDetail>(
-      `${BASE_URL}/by-message/${messageId}`,
+  async getIngestionByMessageId(messageId: string) {
+    const response = await httpClient.get<AdminAuditIngestionDetail>(
+      `${BASE_URL}/by-message/${encodeURIComponent(messageId)}`,
     );
+
+    return response.data;
   },
 };

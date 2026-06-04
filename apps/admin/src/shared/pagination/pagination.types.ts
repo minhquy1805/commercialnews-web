@@ -7,9 +7,21 @@ export type PageInfo = {
   page: number;
   pageSize: number;
   totalItems: number;
-  totalPages?: number;
+  totalPages: number;
 };
 
+/**
+ * Legacy paging shape.
+ *
+ * Một số module cũ vẫn có thể trả response dạng:
+ * {
+ *   items: [],
+ *   page,
+ *   pageSize,
+ *   totalItems,
+ *   totalPages?
+ * }
+ */
 export type FlatPagedResult<TItem> = {
   items: TItem[];
   page: number;
@@ -18,6 +30,20 @@ export type FlatPagedResult<TItem> = {
   totalPages?: number;
 };
 
+/**
+ * New backend paging shape.
+ *
+ * Backend mới trả:
+ * {
+ *   items: [],
+ *   pageInfo: {
+ *     page,
+ *     pageSize,
+ *     totalItems,
+ *     totalPages
+ *   }
+ * }
+ */
 export type PageInfoPagedResult<TItem> = {
   items: TItem[];
   pageInfo: PageInfo;
@@ -28,13 +54,25 @@ export type PaginationFallback = {
   pageSize: number;
 };
 
-export type PaginationSource = {
-  page?: number;
-  pageSize?: number;
-  totalItems?: number;
-  totalPages?: number;
-  pageInfo?: Partial<PageInfo> | null;
-} | null | undefined;
+/**
+ * Dùng cho createTablePagination/getPageInfo.
+ *
+ * Cố tình hỗ trợ cả:
+ * - FlatPagedResult<T>
+ * - PageInfoPagedResult<T>
+ * - object chỉ có page/pageSize/totalItems
+ * - object chỉ có pageInfo
+ */
+export type PaginationSource =
+  | {
+      page?: number;
+      pageSize?: number;
+      totalItems?: number;
+      totalPages?: number;
+      pageInfo?: Partial<PageInfo> | null;
+    }
+  | null
+  | undefined;
 
 export type PaginationChangeHandler = (
   page: number,

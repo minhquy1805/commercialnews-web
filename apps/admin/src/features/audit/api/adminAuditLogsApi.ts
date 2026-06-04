@@ -11,65 +11,76 @@ import type {
 const BASE_URL = '/api/v1/admin/audit';
 
 export const adminAuditLogsApi = {
-  getLogs(params: GetAdminAuditLogsRequest) {
-    return httpClient.get<AdminAuditLogsPagedResponse>(`${BASE_URL}/logs`, {
-      params,
-    });
-  },
-
-  getLogByPublicId(publicId: string) {
-    return httpClient.get<AdminAuditLogDetail>(`${BASE_URL}/logs/${publicId}`);
-  },
-
-  getLogByMessageId(messageId: string) {
-    return httpClient.get<AdminAuditLogDetail>(
-      `${BASE_URL}/logs/by-message/${messageId}`,
+  async getLogs(params: GetAdminAuditLogsRequest) {
+    const response = await httpClient.get<AdminAuditLogsPagedResponse>(
+      `${BASE_URL}/logs`,
+      { params },
     );
+
+    return response.data;
   },
 
-  getLogsByCorrelationId(
+  async getLogByPublicId(publicId: string) {
+    const response = await httpClient.get<AdminAuditLogDetail>(
+      `${BASE_URL}/logs/${encodeURIComponent(publicId)}`,
+    );
+
+    return response.data;
+  },
+
+  async getLogByMessageId(messageId: string) {
+    const response = await httpClient.get<AdminAuditLogDetail>(
+      `${BASE_URL}/logs/by-message/${encodeURIComponent(messageId)}`,
+    );
+
+    return response.data;
+  },
+
+  async getLogsByCorrelationId(
     correlationId: string,
     params?: GetAdminAuditLogsByCorrelationIdRequest,
   ) {
-    return httpClient.get<AdminAuditLogsPagedResponse>(
-      `${BASE_URL}/logs/by-correlation/${correlationId}`,
-      {
-        params,
-      },
+    const response = await httpClient.get<AdminAuditLogsPagedResponse>(
+      `${BASE_URL}/logs/by-correlation/${encodeURIComponent(correlationId)}`,
+      { params },
     );
+
+    return response.data;
   },
 
-  getModuleLogs(sourceModule: string, params: GetAdminAuditLogsRequest) {
-    return httpClient.get<AdminAuditLogsPagedResponse>(
-      `${BASE_URL}/modules/${sourceModule}/logs`,
-      {
-        params,
-      },
+  async getModuleLogs(sourceModule: string, params: GetAdminAuditLogsRequest) {
+    const response = await httpClient.get<AdminAuditLogsPagedResponse>(
+      `${BASE_URL}/modules/${encodeURIComponent(sourceModule)}/logs`,
+      { params },
     );
+
+    return response.data;
   },
 
-  getResourceTimeline(
+  async getResourceTimeline(
     resourceType: string,
     resourceId: string,
     params: GetAdminAuditTimelineRequest,
   ) {
-    return httpClient.get<AdminAuditTimelinePagedResponse>(
-      `${BASE_URL}/resources/${resourceType}/${resourceId}/timeline`,
-      {
-        params,
-      },
+    const response = await httpClient.get<AdminAuditTimelinePagedResponse>(
+      `${BASE_URL}/resources/${encodeURIComponent(resourceType)}/${encodeURIComponent(
+        resourceId,
+      )}/timeline`,
+      { params },
     );
+
+    return response.data;
   },
 
-  getActorTimeline(
+  async getActorTimeline(
     actorUserId: string,
     params: GetAdminAuditTimelineRequest,
   ) {
-    return httpClient.get<AdminAuditTimelinePagedResponse>(
-      `${BASE_URL}/actors/${actorUserId}/timeline`,
-      {
-        params,
-      },
+    const response = await httpClient.get<AdminAuditTimelinePagedResponse>(
+      `${BASE_URL}/actors/${encodeURIComponent(actorUserId)}/timeline`,
+      { params },
     );
+
+    return response.data;
   },
 };

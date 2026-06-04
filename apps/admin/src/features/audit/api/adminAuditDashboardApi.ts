@@ -9,18 +9,21 @@ import type {
 const BASE_URL = '/api/v1/admin/audit/dashboard';
 
 export const adminAuditDashboardApi = {
-  getDashboardSummary(params?: GetAdminAuditDashboardSummaryRequest) {
-    return httpClient.get<AdminAuditDashboardSummary>(`${BASE_URL}/summary`, {
-      params,
-    });
+  async getDashboardSummary(params?: GetAdminAuditDashboardSummaryRequest) {
+    const response = await httpClient.get<AdminAuditDashboardSummary>(
+      `${BASE_URL}/summary`,
+      { params },
+    );
+
+    return response.data;
   },
 
-  getRecentRiskEvents(params?: GetAdminRecentRiskEventsRequest) {
-    return httpClient.get<AdminRecentRiskEvents>(
+  async getRecentRiskEvents(params?: GetAdminRecentRiskEventsRequest) {
+    const response = await httpClient.get<AdminRecentRiskEvents>(
       `${BASE_URL}/recent-risk-events`,
-      {
-        params,
-      },
+      { params },
     );
+
+    return response.data;
   },
 };
