@@ -31,4 +31,10 @@ export const ROUTES = {
   INTERACTION_MODERATION_CASES: "/interaction/moderation-cases",
   INTERACTION_MODERATION_CASE_DETAIL: "/interaction/moderation-cases/:casePublicId",
   INTERACTION_ARTICLE_STATS: "/interaction/articles/:articlePublicId/stats",
+  AUDIT: "/audit",
+  AUDIT_DASHBOARD: "/audit/dashboard",
+  AUDIT_LOGS: "/audit/logs",
+  AUDIT_LOG_DETAIL: "/audit/logs/:publicId",
+  AUDIT_INGESTIONS: "/audit/ingestions",
+  AUDIT_INGESTION_DETAIL: "/audit/ingestions/:publicId",
 } as const;

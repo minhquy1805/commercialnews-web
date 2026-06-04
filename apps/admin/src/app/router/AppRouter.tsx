@@ -31,6 +31,11 @@ import { InteractionCommentDetailPage } from "../../features/interaction/pages/I
 import { InteractionCommentsPage } from "../../features/interaction/pages/InteractionCommentsPage";
 import { InteractionModerationCaseDetailPage } from "../../features/interaction/pages/InteractionModerationCaseDetailPage";
 import { InteractionModerationCasesPage } from "../../features/interaction/pages/InteractionModerationCasesPage";
+import { AuditDashboardPage } from "../../features/audit/pages/AuditDashboardPage";
+import { AuditIngestionDetailPage } from "../../features/audit/pages/AuditIngestionDetailPage";
+import { AuditIngestionsPage } from "../../features/audit/pages/AuditIngestionsPage";
+import { AuditLogDetailPage } from "../../features/audit/pages/AuditLogDetailPage";
+import { AuditLogsPage } from "../../features/audit/pages/AuditLogsPage";
 
 export function AppRouter() {
   return (
@@ -142,6 +147,21 @@ export function AppRouter() {
         <Route
           path={ROUTES.INTERACTION_ARTICLE_STATS}
           element={<InteractionArticleStatsPage />}
+        />
+        <Route
+          path={ROUTES.AUDIT}
+          element={<Navigate to={ROUTES.AUDIT_DASHBOARD} replace />}
+        />
+        <Route path={ROUTES.AUDIT_DASHBOARD} element={<AuditDashboardPage />} />
+        <Route path={ROUTES.AUDIT_LOGS} element={<AuditLogsPage />} />
+        <Route
+          path={ROUTES.AUDIT_LOG_DETAIL}
+          element={<AuditLogDetailPage />}
+        />
+        <Route path={ROUTES.AUDIT_INGESTIONS} element={<AuditIngestionsPage />} />
+        <Route
+          path={ROUTES.AUDIT_INGESTION_DETAIL}
+          element={<AuditIngestionDetailPage />}
         />
       </Route>
     </Routes>

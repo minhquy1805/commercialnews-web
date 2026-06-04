@@ -1,6 +1,7 @@
 import type { Key, ReactNode } from "react";
 import { useState } from "react";
 import {
+  AuditOutlined,
   DashboardOutlined,
   FileTextOutlined,
   GlobalOutlined,
@@ -77,6 +78,12 @@ const sidebarItems: MenuItem[] = [
     getItem("Comments", ROUTES.INTERACTION_COMMENTS),
     getItem("Moderation cases", ROUTES.INTERACTION_MODERATION_CASES),
   ]),
+
+  getItem("Audit", "audit", <AuditOutlined />, [
+    getItem("Dashboard", ROUTES.AUDIT_DASHBOARD),
+    getItem("Logs", ROUTES.AUDIT_LOGS),
+    getItem("Ingestion", ROUTES.AUDIT_INGESTIONS),
+  ]),
 ];
 
 function getOpenKeys(pathname: string): string[] {
@@ -86,6 +93,7 @@ function getOpenKeys(pathname: string): string[] {
   if (pathname.startsWith("/media")) return ["media"];
   if (pathname.startsWith("/seo")) return ["seo"];
   if (pathname.startsWith("/interaction")) return ["interaction"];
+  if (pathname.startsWith("/audit")) return ["audit"];
 
   return [];
 }
