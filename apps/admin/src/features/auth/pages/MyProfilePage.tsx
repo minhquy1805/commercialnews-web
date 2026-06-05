@@ -1,6 +1,7 @@
 import {
   LockOutlined,
   LogoutOutlined,
+  UploadOutlined,
   UserOutlined,
 } from "@ant-design/icons";
 import {
@@ -12,20 +13,19 @@ import {
   Divider,
   Form,
   Input,
-  InputNumber,
   Popconfirm,
   Skeleton,
-  Slider,
   Space,
   Tag,
   Table,
   type TableProps,
   Typography,
 } from "antd";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useChangePassword } from "../hooks/useChangePassword";
 import { useMyLoginHistory } from "../hooks/useMyLoginHistory";
 import { useMyProfile } from "../hooks/useMyProfile";
+import { useUpdateMyAvatar } from "../hooks/useUpdateMyAvatar";
 import { useUpdateMyProfile } from "../hooks/useUpdateMyProfile";
 import {
   type ChangePasswordRequest,
@@ -43,7 +43,6 @@ import { USER_ACCOUNT_STATUSES } from "../../../shared/types/userAccountStatus";
 
 type ProfileFormValues = {
   fullName: string;
-  avatarUrl?: string | null;
 };
 
 type ChangePasswordFormValues = {
@@ -124,11 +123,20 @@ const loginHistoryColumns: TableProps<LoginHistoryItemResponse>["columns"] = [
   },
 ];
 
+const MAX_AVATAR_FILE_SIZE_BYTES = 5 * 1024 * 1024;
+const AVATAR_FILE_ACCEPT =
+  "image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp";
+
 export function MyProfilePage() {
   const [profileForm] = Form.useForm<ProfileFormValues>();
   const [passwordForm] = Form.useForm<ChangePasswordFormValues>();
-  const [avatarRotation, setAvatarRotation] = useState(0);
-  const [failedAvatarUrl, setFailedAvatarUrl] = useState<string | null>(null);
+  const avatarFileInputRef = useRef<HTMLInputElement | null>(null);
+  const [selectedAvatarFile, setSelectedAvatarFile] = useState<File | null>(
+    null,
+  );
+  const [selectedAvatarPreviewUrl, setSelectedAvatarPreviewUrl] = useState<
+    string | null
+  >(null);
   const [loginHistoryPage, setLoginHistoryPage] = useState(1);
   const [loginHistoryPageSize, setLoginHistoryPageSize] = useState(10);
   const { notification } = App.useApp();
@@ -139,17 +147,14 @@ export function MyProfilePage() {
     pageSize: loginHistoryPageSize,
   });
   const updateProfileMutation = useUpdateMyProfile();
+  const updateAvatarMutation = useUpdateMyAvatar();
   const changePasswordMutation = useChangePassword();
 
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const clearAuth = useAuthStore((state) => state.clearAuth);
   const logoutAllSessionsMutation = useLogoutAllSessions();
-  const avatarUrl = Form.useWatch("avatarUrl", profileForm);
-  const previewAvatarUrl = avatarUrl?.trim();
-  const canShowAvatarPreview = Boolean(
-    previewAvatarUrl && failedAvatarUrl !== previewAvatarUrl,
-  );
+  const avatarPreviewUrl = selectedAvatarPreviewUrl ?? profile?.avatarUrl ?? null;
 
   useEffect(() => {
     if (!profile) {
@@ -158,18 +163,76 @@ export function MyProfilePage() {
 
     profileForm.setFieldsValue({
       fullName: profile.fullName,
-      avatarUrl: profile.avatarUrl,
     });
   }, [profileForm, profile]);
 
+  useEffect(() => {
+    if (!selectedAvatarFile) {
+      setSelectedAvatarPreviewUrl(null);
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(selectedAvatarFile);
+    setSelectedAvatarPreviewUrl(objectUrl);
+
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [selectedAvatarFile]);
+
+  const handleAvatarFileChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0] ?? null;
+
+    if (!file) {
+      setSelectedAvatarFile(null);
+      return;
+    }
+
+    if (file.size > MAX_AVATAR_FILE_SIZE_BYTES) {
+      event.currentTarget.value = "";
+      setSelectedAvatarFile(null);
+
+      notification.warning({
+        title: "Avatar file is too large",
+        description: "Avatar file must not exceed 5 MB.",
+        placement: "topRight",
+      });
+
+      return;
+    }
+
+    setSelectedAvatarFile(file);
+  };
+
+  const clearSelectedAvatarFile = () => {
+    setSelectedAvatarFile(null);
+
+    if (avatarFileInputRef.current) {
+      avatarFileInputRef.current.value = "";
+    }
+  };
+
   const handleUpdateProfile = async (values: ProfileFormValues) => {
+    const normalizedFullName = values.fullName.trim();
     const request: UpdateMyProfileRequest = {
-      fullName: values.fullName.trim(),
-      avatarUrl: values.avatarUrl?.trim() || null,
+      fullName: normalizedFullName,
     };
 
     try {
-      await updateProfileMutation.mutateAsync(request);
+      const fullNameChanged =
+        normalizedFullName !== (profile?.fullName?.trim() ?? "");
+
+      if (fullNameChanged) {
+        await updateProfileMutation.mutateAsync(request);
+      }
+
+      if (selectedAvatarFile) {
+        await updateAvatarMutation.mutateAsync({
+          file: selectedAvatarFile,
+        });
+
+        clearSelectedAvatarFile();
+      }
 
       notification.success({
         title: "Profile updated",
@@ -322,24 +385,7 @@ export function MyProfilePage() {
             <Input placeholder="Enter your full name" />
           </Form.Item>
 
-          <Form.Item
-            label="Avatar URL"
-            name="avatarUrl"
-            rules={[
-              {
-                type: "url",
-                message: "Avatar URL must be a valid URL.",
-              },
-              {
-                max: 1000,
-                message: "Avatar URL must not exceed 1000 characters.",
-              },
-            ]}
-          >
-            <Input placeholder="https://example.com/avatar.png" allowClear />
-          </Form.Item>
-
-          <Form.Item label="Avatar preview">
+          <Form.Item label="Avatar">
             <Space align="center" size={16} wrap>
               <div
                 style={{
@@ -353,17 +399,14 @@ export function MyProfilePage() {
                   background: "#f5f5f5",
                 }}
               >
-                {canShowAvatarPreview ? (
+                {avatarPreviewUrl ? (
                   <img
-                    src={previewAvatarUrl}
+                    src={avatarPreviewUrl}
                     alt=""
-                    onError={() => setFailedAvatarUrl(previewAvatarUrl ?? null)}
                     style={{
                       width: "100%",
                       height: "100%",
                       objectFit: "cover",
-                      transform: `rotate(${avatarRotation}deg)`,
-                      transition: "transform 160ms ease",
                     }}
                   />
                 ) : (
@@ -372,29 +415,35 @@ export function MyProfilePage() {
               </div>
 
               <div style={{ width: 280, maxWidth: "100%" }}>
-                <Typography.Text strong>Rotation</Typography.Text>
+                <Space direction="vertical" size={8} style={{ width: "100%" }}>
+                  <Space wrap>
+                    <Button
+                      icon={<UploadOutlined />}
+                      onClick={() => avatarFileInputRef.current?.click()}
+                    >
+                      Choose file
+                    </Button>
 
-                <Space.Compact style={{ width: "100%", marginTop: 8 }}>
-                  <Slider
-                    min={0}
-                    max={359}
-                    value={avatarRotation}
-                    onChange={setAvatarRotation}
-                    tooltip={{
-                      formatter: (value) => `${value ?? 0} deg`,
-                    }}
-                    style={{ flex: 1, marginInline: 8 }}
-                  />
+                    <Button
+                      disabled={!selectedAvatarFile}
+                      onClick={clearSelectedAvatarFile}
+                    >
+                      Use current avatar
+                    </Button>
+                  </Space>
 
-                  <InputNumber
-                    min={0}
-                    max={359}
-                    value={avatarRotation}
-                    onChange={(value) => setAvatarRotation(value ?? 0)}
-                    addonAfter="deg"
-                    style={{ width: 112 }}
-                  />
-                </Space.Compact>
+                  <Typography.Text type="secondary">
+                    {selectedAvatarFile?.name ?? "No new avatar selected"}
+                  </Typography.Text>
+                </Space>
+
+                <input
+                  ref={avatarFileInputRef}
+                  type="file"
+                  accept={AVATAR_FILE_ACCEPT}
+                  style={{ display: "none" }}
+                  onChange={handleAvatarFileChange}
+                />
               </div>
             </Space>
           </Form.Item>
@@ -403,7 +452,9 @@ export function MyProfilePage() {
             <Button
               type="primary"
               htmlType="submit"
-              loading={updateProfileMutation.isPending}
+              loading={
+                updateProfileMutation.isPending || updateAvatarMutation.isPending
+              }
             >
               Update Profile
             </Button>

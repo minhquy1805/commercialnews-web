@@ -29,10 +29,24 @@ export type MyProfileResponse = {
 
 export type UpdateMyProfileRequest = {
   fullName: string;
-  avatarUrl: string | null;
 };
 
 export type UpdateMyProfileResponse = {
+  userId: number;
+  publicId: string;
+  email: string;
+  fullName: string;
+  avatarUrl: string | null;
+  isEmailVerified: boolean;
+  status: UserAccountStatus;
+  updatedAt: string | null;
+};
+
+export type UpdateMyAvatarRequest = {
+  file: File;
+};
+
+export type UpdateMyAvatarResponse = {
   userId: number;
   publicId: string;
   email: string;

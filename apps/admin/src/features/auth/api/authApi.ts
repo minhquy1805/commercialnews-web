@@ -9,6 +9,8 @@ import type {
   LogoutAllSessionsResponse,
   LogoutResponse,
   MyProfileResponse,
+  UpdateMyAvatarRequest,
+  UpdateMyAvatarResponse,
   UpdateMyProfileRequest,
   UpdateMyProfileResponse,
 } from "../types/auth.types";
@@ -39,6 +41,26 @@ export const authApi = {
     const response = await httpClient.put<UpdateMyProfileResponse>(
       `${AUTH_BASE_URL}/me`,
       request,
+    );
+
+    return response.data;
+  },
+
+  async updateMyAvatar(
+    request: UpdateMyAvatarRequest,
+  ): Promise<UpdateMyAvatarResponse> {
+    const formData = new FormData();
+
+    formData.append("file", request.file);
+
+    const response = await httpClient.put<UpdateMyAvatarResponse>(
+      `${AUTH_BASE_URL}/me/avatar`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      },
     );
 
     return response.data;
