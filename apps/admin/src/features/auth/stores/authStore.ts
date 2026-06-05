@@ -5,7 +5,7 @@ type AuthStore = {
   accessToken: string | null;
   isAuthenticated: boolean;
 
-  setAccessToken: (accessToken: string) => void;
+  setAccessToken: (accessToken: string, rememberMe?: boolean) => void;
   clearAuth: () => void;
 };
 
@@ -16,8 +16,8 @@ export const useAuthStore = create<AuthStore>((set) => {
     accessToken,
     isAuthenticated: Boolean(accessToken),
 
-    setAccessToken: (newAccessToken) => {
-      tokenStorage.setAccessToken(newAccessToken);
+    setAccessToken: (newAccessToken, rememberMe) => {
+      tokenStorage.setAccessToken(newAccessToken, rememberMe);
 
       set({
         accessToken: newAccessToken,

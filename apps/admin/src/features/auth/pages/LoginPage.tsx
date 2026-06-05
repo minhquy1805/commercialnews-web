@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Alert, Button, Card, Form, Input, Typography } from "antd";
+import { Alert, Button, Card, Checkbox, Form, Input, Typography } from "antd";
 import { Controller, useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import {
@@ -27,6 +27,7 @@ export function LoginPage() {
     defaultValues: {
       email: "",
       password: "",
+      rememberMe: false,
     },
   });
 
@@ -34,7 +35,7 @@ export function LoginPage() {
     try {
       const result = await loginMutation.mutateAsync(values);
 
-      setAccessToken(result.accessToken);
+      setAccessToken(result.accessToken, values.rememberMe);
 
       navigate(ROUTES.DASHBOARD);
     } catch {
@@ -113,6 +114,22 @@ export function LoginPage() {
                   placeholder="Enter your password"
                   autoComplete="current-password"
                 />
+              )}
+            />
+          </Form.Item>
+
+          <Form.Item>
+            <Controller
+              name="rememberMe"
+              control={control}
+              render={({ field }) => (
+                <Checkbox
+                  checked={field.value}
+                  onChange={(event) => field.onChange(event.target.checked)}
+                  onBlur={field.onBlur}
+                >
+                  Remember me
+                </Checkbox>
               )}
             />
           </Form.Item>
