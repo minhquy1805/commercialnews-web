@@ -1,0 +1,72 @@
+name: Admin - Deploy to VM
+
+on:
+  workflow_dispatch:
+    inputs:
+      admin_version:
+        description: "Admin version to deploy, example: admin-v1.0.0"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-admin:
+    name: Deploy Admin
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Validate version
+        shell: bash
+        run: |
+          VERSION="${{ inputs.admin_version }}"
+
+          if [[ ! "$VERSION" =~ ^admin-v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Invalid version: $VERSION"
+            echo "Expected format: admin-vX.Y.Z, example: admin-v1.0.0"
+            exit 1
+          fi
+
+          echo "Version is valid: $VERSION"
+
+      - name: Prepare SSH
+        shell: bash
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VM_SSH_KEY }}" > ~/.ssh/commercialnews_vm_key
+          chmod 600 ~/.ssh/commercialnews_vm_key
+          ssh-keyscan -H "${{ secrets.VM_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Deploy admin
+        shell: bash
+        run: |
+          ADMIN_VERSION="${{ inputs.admin_version }}"
+
+          ssh -i ~/.ssh/commercialnews_vm_key "${{ secrets.VM_USER }}@${{ secrets.VM_HOST }}" << EOF
+            set -e
+
+            cd "${{ secrets.VM_DEPLOY_PATH }}"
+
+            echo "Pull latest deploy config"
+            git fetch origin
+            git reset --hard origin/main
+
+            echo "Set admin version: $ADMIN_VERSION"
+            if grep -q '^ADMIN_IMAGE_VERSION=' .env.prod; then
+              sed -i "s/^ADMIN_IMAGE_VERSION=.*/ADMIN_IMAGE_VERSION=$ADMIN_VERSION/" .env.prod
+            else
+              echo "ADMIN_IMAGE_VERSION=$ADMIN_VERSION" >> .env.prod
+            fi
+
+            echo "Validate docker compose"
+            docker compose --env-file .env.prod -f docker-compose.prod.yaml config > /tmp/commercialnews-compose-check.yaml
+
+            echo "Pull admin image"
+            docker compose --env-file .env.prod -f docker-compose.prod.yaml pull commercialnews-admin
+
+            echo "Start admin service"
+            docker compose --env-file .env.prod -f docker-compose.prod.yaml up -d commercialnews-admin
+
+            echo "Admin deployment completed"
+          EOF
