@@ -1,5 +1,7 @@
 "use client";
 
+import { useRef } from "react";
+import { useDismissible } from "@/shared/hooks/useDismissible";
 import { useHeaderSearch } from "./hooks/useHeaderSearch";
 
 type HeaderSearchProps = {
@@ -18,6 +20,7 @@ export function HeaderSearch({
   const {
     keyword,
     isSearchOpen,
+    closeSearch,
     handleKeywordChange,
     handleSubmit,
     toggleSearch,
@@ -26,6 +29,9 @@ export function HeaderSearch({
     onOpenChange,
     onSearchSubmitted,
   });
+  const desktopSearchRef = useRef<HTMLDivElement>(null);
+
+  useDismissible(desktopSearchRef, closeSearch, isSearchOpen);
 
   if (variant === "mobile") {
     return (
@@ -73,7 +79,7 @@ export function HeaderSearch({
   }
 
   return (
-    <div className="relative hidden lg:block">
+    <div ref={desktopSearchRef} className="relative hidden lg:block">
       <button
         type="button"
         onClick={toggleSearch}

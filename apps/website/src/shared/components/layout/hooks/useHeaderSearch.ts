@@ -60,6 +60,7 @@ export function useHeaderSearch({
   return {
     keyword,
     isSearchOpen,
+    closeSearch,
     handleKeywordChange,
     handleSubmit,
     toggleSearch,

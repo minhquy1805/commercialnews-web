@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useRef } from "react";
 import { Container } from "@/shared/components/ui/Container";
+import { useDismissible } from "@/shared/hooks/useDismissible";
 import { HeaderSearch } from "./HeaderSearch";
 import { HeaderUserMenu } from "./HeaderUserMenu";
 import { usePublicHeaderState } from "./hooks/usePublicHeaderState";
@@ -28,6 +30,13 @@ export function PublicHeader() {
     toggleMobileCategories,
     handleDesktopSearchOpenChange,
   } = usePublicHeaderState();
+  const desktopCategoriesRef = useRef<HTMLDivElement>(null);
+
+  useDismissible(
+    desktopCategoriesRef,
+    closeDesktopCategories,
+    isDesktopCategoriesOpen,
+  );
 
   const { currentUser, isLoading: isCurrentUserLoading } = useCurrentUser();
 
@@ -80,7 +89,7 @@ export function PublicHeader() {
               Latest
             </Link>
 
-            <div className="relative">
+            <div ref={desktopCategoriesRef} className="relative">
               <button
                 type="button"
                 onClick={toggleDesktopCategories}

@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { CurrentUserResponse } from "@/features/auth/types/auth.types";
 import { useLogout } from "@/features/auth/hooks/useLogout";
+import { useDismissible } from "@/shared/hooks/useDismissible";
 import Image from "next/image";
 
 type HeaderUserMenuProps = {
@@ -27,6 +28,9 @@ export function HeaderUserMenu({
 }: HeaderUserMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const { logout, isLoading } = useLogout();
+  const desktopMenuRef = useRef<HTMLDivElement>(null);
+
+  useDismissible(desktopMenuRef, () => setIsOpen(false), isOpen);
 
   const displayName = getDisplayName(currentUser);
   const avatarInitial = getAvatarInitial(currentUser);
@@ -121,7 +125,7 @@ export function HeaderUserMenu({
   }
 
   return (
-    <div className="relative">
+    <div ref={desktopMenuRef} className="relative">
       <button
         type="button"
         onClick={() => setIsOpen((current) => !current)}
