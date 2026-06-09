@@ -1,266 +1,259 @@
-# CommercialNews Web
+# 📰 CommercialNews Web
 
-Frontend monorepo for the CommercialNews platform.
+[![Next.js](https://img.shields.io/badge/Next.js-16-000000?logo=nextdotjs)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-19-149ECA?logo=react&logoColor=white)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-Strict-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![npm workspaces](https://img.shields.io/badge/npm-workspaces-CB3837?logo=npm&logoColor=white)](https://docs.npmjs.com/cli/using-npm/workspaces)
 
-This repository contains the frontend applications for CommercialNews:
+Frontend monorepo for the **CommercialNews** platform.
 
-- `apps/admin`: internal admin dashboard
-- `apps/website`: public reader-facing website
-- `packages`: shared packages, planned for future reuse
+It contains the public reader-facing website and the internal administration
+dashboard. Both applications share the same workspace, scripts, and environment
+conventions while keeping their feature code independent.
 
-## Repository Structure
+## ✨ Applications
+
+| Application | Workspace | Technology | Local URL |
+| --- | --- | --- | --- |
+| Public website | `@commercialnews/website` | Next.js + React | `http://localhost:3000` |
+| Admin dashboard | `@commercialnews/admin` | Vite + React | `http://localhost:5173` |
+
+## 🧰 Technology
+
+### Website
+
+- Next.js 16 App Router
+- React 19 and TypeScript
+- Tailwind CSS 4
+- TanStack Query for server state
+- React Hook Form and Zod for forms and validation
+- Axios for API communication
+- SweetAlert2 for action feedback
+
+### Admin
+
+- React 19 and TypeScript
+- Vite
+- Ant Design
+- TanStack Query
+- Zustand
+- React Hook Form and Zod
+
+## 🗂 Repository Structure
 
 ```text
 commercialnews-web/
 ├── apps/
-│   ├── admin/      # React + TypeScript + Vite admin dashboard
-│   └── website/    # Next.js public website
-├── packages/       # Shared packages, planned
-├── package.json    # Root npm workspace scripts
+│   ├── admin/                  # Internal administration dashboard
+│   └── website/                # Public CommercialNews website
+├── packages/                   # Future shared workspace packages
+├── package.json                # Root workspace scripts
 ├── package-lock.json
 └── README.md
 ```
 
-## Apps
-
-### Admin
-
-Location:
+The website follows a feature-oriented structure:
 
 ```text
-apps/admin
+apps/website/src/
+├── app/
+│   ├── (public)/               # Pages rendered with PublicHeader/PublicFooter
+│   ├── (auth)/                 # Authentication pages without public chrome
+│   ├── layout.tsx              # Global fonts, metadata, CSS, and providers
+│   └── providers.tsx           # Application-level client providers
+├── features/
+│   ├── auth/
+│   │   ├── api/
+│   │   ├── components/
+│   │   ├── constants/
+│   │   ├── hooks/
+│   │   ├── schemas/
+│   │   └── types/
+│   └── reading/
+│       ├── components/
+│       ├── types/
+│       └── utils/
+└── shared/
+    ├── api/
+    ├── auth/
+    ├── components/
+    │   ├── content/
+    │   ├── layout/
+    │   └── ui/
+    └── hooks/
 ```
 
-Stack:
+Route group names such as `(public)` and `(auth)` organize layouts without
+appearing in the browser URL.
 
-- React
-- TypeScript
-- Vite
+## 🌐 Website Routes
 
-Default local URL:
+### Public
 
-```text
-http://localhost:5173
-```
+| Route | Description |
+| --- | --- |
+| `/` | Homepage |
+| `/about` | About CommercialNews |
+| `/editorial-policy` | Editorial standards |
+| `/contact` | Contact information |
+| `/privacy` | Privacy policy |
+| `/terms` | Terms of use |
+| `/profile` | Authenticated user profile |
 
-### Website
+### Authentication
 
-Location:
+| Route | Description |
+| --- | --- |
+| `/login` | Sign in |
+| `/register` | Create an account |
+| `/forgot-password` | Request a password reset link |
+| `/reset-password` | Set a new password from a token |
+| `/verify-email` | Verify an email address |
 
-```text
-apps/website
-```
+The public route group uses `PublicShell`, which supplies the header, footer,
+responsive navigation, search, and authenticated user menu. Authentication
+pages intentionally use a separate layout without the public header or footer.
 
-Stack:
+## 🔐 Authentication Features
 
-- Next.js
-- TypeScript
+The website currently includes:
 
-Default local URL:
+- Registration and email verification
+- Login, logout, and session refresh
+- Resend verification email
+- Forgot-password and reset-password flows
+- Protected profile page
+- Profile and avatar updates
+- Password changes
+- Login history
+- Logout from all sessions
+- Shared password fields with show/hide controls
+- Zod validation and API error handling
 
-```text
-http://localhost:3000
-```
+The Axios client sends credentials to the API, attaches the current access
+token, and attempts session refresh after eligible `401` responses.
 
-## Requirements
+## 🚀 Getting Started
 
-Use Node.js 22 LTS or newer.
+### Requirements
 
-Check versions:
+- Node.js 22 LTS or newer
+- npm
+- CommercialNews API running locally or through Docker
+
+Check installed versions:
 
 ```bash
 node -v
 npm -v
 ```
 
-## Installation
+### Install
 
-Install dependencies from the repository root:
+From the repository root:
 
 ```bash
 npm install
 ```
 
-## Development
+### Configure Environment
 
-Run the admin app:
-
-```bash
-npm run dev:admin
-```
-
-Run the website app:
+Copy the example file for the application you want to run:
 
 ```bash
-npm run dev:website
+cp apps/website/.env.example apps/website/.env.local
+cp apps/admin/.env.example apps/admin/.env.local
 ```
 
-## Build
-
-Build the admin app:
-
-```bash
-npm run build:admin
-```
-
-Build the website app:
-
-```bash
-npm run build:website
-```
-
-Build all apps:
-
-```bash
-npm run build
-```
-
-## Lint
-
-Lint the admin app:
-
-```bash
-npm run lint:admin
-```
-
-Lint the website app:
-
-```bash
-npm run lint:website
-```
-
-Lint all apps:
-
-```bash
-npm run lint
-```
-
-## Environment Variables
-
-Environment files are app-specific.
-
-Admin app:
-
-```text
-apps/admin/.env.local
-apps/admin/.env.production
-apps/admin/.env.example
-```
-
-Website app:
-
-```text
-apps/website/.env.local
-apps/website/.env.production
-apps/website/.env.example
-```
-
-Vite exposes browser variables with the `VITE_` prefix.
-
-```env
-VITE_APP_NAME=CommercialNews Admin
-VITE_API_BASE_URL=http://localhost:5226
-```
-
-Next.js exposes browser variables with the `NEXT_PUBLIC_` prefix.
+Website variables:
 
 ```env
 NEXT_PUBLIC_APP_NAME=CommercialNews
 NEXT_PUBLIC_API_BASE_URL=http://localhost:5226
 ```
 
-## API Base URLs
+Admin variables:
 
-Common backend API URLs:
-
-```text
-Local dotnet run:
-http://localhost:5226
-
-Local Docker + Nginx:
-http://localhost:8088
-
-Production:
-https://api.minhquy.dev
+```env
+VITE_APP_NAME=CommercialNews Admin
+VITE_API_BASE_URL=http://localhost:5226
 ```
 
-Recommended local default:
+Common API URLs:
 
-```text
-http://localhost:5226
+| Environment | API URL |
+| --- | --- |
+| Local `dotnet run` | `http://localhost:5226` |
+| Local Docker/Nginx | `http://localhost:8088` |
+| Production | `https://api.minhquy.dev` |
+
+> Variables prefixed with `NEXT_PUBLIC_` or `VITE_` are exposed to browser
+> code. Never put secrets in frontend environment files.
+
+## 💻 Development
+
+Run the public website:
+
+```bash
+npm run dev:website
 ```
 
-Use this when running the backend directly with `dotnet run`.
-
-Use this when testing the backend through local Docker/Nginx:
-
-```text
-http://localhost:8088
-```
-
-Use this for production builds:
-
-```text
-https://api.minhquy.dev
-```
-
-## Environment File Policy
-
-Do not commit local machine-specific environment files:
-
-```text
-.env.local
-.env.development.local
-.env.production.local
-.env.test.local
-```
-
-Commit safe example files:
-
-```text
-.env.example
-```
-
-Never store secrets in frontend environment variables.
-
-Variables prefixed with `VITE_` or `NEXT_PUBLIC_` are exposed to the browser after build.
-
-## Workspace Scripts
-
-This repository uses npm workspaces.
-
-Admin workspace:
-
-```text
-@commercialnews/admin
-```
-
-Website workspace:
-
-```text
-@commercialnews/website
-```
-
-Root scripts call app-level scripts through npm workspaces.
-
-Example:
+Run the admin dashboard:
 
 ```bash
 npm run dev:admin
-npm run dev:website
+```
+
+## ✅ Quality Checks
+
+Build an individual application:
+
+```bash
+npm run build:website
+npm run build:admin
+```
+
+Build the complete workspace:
+
+```bash
 npm run build
+```
+
+Lint an individual application:
+
+```bash
+npm run lint:website
+npm run lint:admin
+```
+
+Lint the complete workspace:
+
+```bash
 npm run lint
 ```
 
-## Current Status
+## 📜 Available Root Scripts
 
-The current frontend foundation includes:
+| Command | Purpose |
+| --- | --- |
+| `npm run dev:website` | Start the Next.js development server |
+| `npm run dev:admin` | Start the Vite development server |
+| `npm run build:website` | Build the public website |
+| `npm run build:admin` | Build the admin dashboard |
+| `npm run build` | Build both applications |
+| `npm run lint:website` | Lint the public website |
+| `npm run lint:admin` | Lint the admin dashboard |
+| `npm run lint` | Lint both applications |
+| `npm run start:website` | Start the production website build |
+| `npm run preview:admin` | Preview the admin production build |
 
-- React + Vite admin app
-- Next.js website app
-- npm workspace setup
-- root scripts for app-level development and builds
-- environment file convention
-- shared `packages/` directory planned for future reuse
+## 🧭 Development Guidelines
 
-Feature folders are intentionally not created yet. Each app will introduce feature-based structure when the related module is implemented.
+- Keep page files focused on routing and composition.
+- Put domain behavior inside the matching `features/*` folder.
+- Keep reusable layout, UI, API, and utility code inside `shared/*`.
+- Add a context or provider only when state genuinely needs to cross feature or
+  route boundaries.
+- Keep `.env.local` and other machine-specific environment files out of Git.
+- Run lint and build checks before committing.
