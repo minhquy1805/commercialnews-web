@@ -1,94 +1,6 @@
 import { Container } from "@/shared/components/ui/Container";
-import { SectionTitle } from "@/shared/components/ui/SectionTitle";
-import { SmallArticleItem } from "@/features/reading/components/SmallArticleItem";
-import type { ArticleSummary } from "@/features/reading/types/article";
-
-type HomepageSection = {
-  title: string;
-  href: string;
-  articles: ArticleSummary[];
-};
-
-const latestArticles: ArticleSummary[] = [
-  {
-    title: "Building modern applications with clean architecture",
-    href: "/articles/building-modern-applications-with-clean-architecture",
-    category: "Technology",
-    summary:
-      "A practical look at how clean architecture helps teams build maintainable software.",
-    views: 1240,
-    likes: 86,
-  },
-  {
-    title: "Why cloud security matters for growing startups",
-    href: "/articles/why-cloud-security-matters-for-growing-startups",
-    category: "Cloud",
-    summary:
-      "Security decisions made early can shape the long-term reliability of a product.",
-    views: 980,
-    likes: 61,
-  },
-];
-
-const popularReads: ArticleSummary[] = [
-  {
-    title: "AI is changing how developers write and review code",
-    href: "/articles/ai-is-changing-how-developers-write-and-review-code",
-    category: "AI",
-    summary:
-      "AI tools are becoming part of daily development workflows, from review to documentation.",
-    views: 8400,
-    likes: 430,
-  },
-  {
-    title: "The business value of observability in production systems",
-    href: "/articles/the-business-value-of-observability",
-    category: "Business",
-    summary:
-      "Observability helps teams understand user behavior, failures, and system health.",
-    views: 6200,
-    likes: 318,
-  },
-];
-
-const mostLiked: ArticleSummary[] = [
-  {
-    title: "Lessons from scaling a modular monolith",
-    href: "/articles/lessons-from-scaling-a-modular-monolith",
-    category: "Software Engineering",
-    summary:
-      "A modular monolith can be a strong architecture choice before moving to microservices.",
-    views: 5100,
-    likes: 720,
-  },
-  {
-    title: "How developers can think more like product builders",
-    href: "/articles/how-developers-can-think-more-like-product-builders",
-    category: "Career",
-    summary:
-      "Great developers do not only write code; they understand users, value, and trade-offs.",
-    views: 4700,
-    likes: 690,
-  },
-];
-
-const homepageSections: HomepageSection[] = [
-  {
-    title: "Latest Articles",
-    href: "/articles?sort=-publishedAt",
-    articles: latestArticles,
-  },
-  {
-    title: "Popular Reads",
-    href: "/articles?sort=-viewCount",
-    articles: popularReads,
-  },
-  {
-    title: "Most Liked",
-    href: "/articles?sort=-likeCount",
-    articles: mostLiked,
-  },
-];
+import { LatestArticlesSection } from "@/features/reading/components/LatestArticlesSection";
+import { READING_SORTS } from "@/features/reading/constants/readingSorts";
 
 export default function HomePage() {
   return (
@@ -110,17 +22,23 @@ export default function HomePage() {
       </section>
 
       <div className="mt-12 grid gap-10 lg:grid-cols-3">
-        {homepageSections.map((section) => (
-          <section key={section.title}>
-            <SectionTitle title={section.title} href={section.href} />
+        <LatestArticlesSection
+          title="Latest Articles"
+          href="/articles?sort=-publishedAt"
+          sort={READING_SORTS.LATEST}
+        />
 
-            <div className="space-y-5">
-              {section.articles.map((article) => (
-                <SmallArticleItem key={article.href} article={article} />
-              ))}
-            </div>
-          </section>
-        ))}
+        <LatestArticlesSection
+          title="Popular Reads"
+          href="/articles?sort=-viewCount"
+          sort={READING_SORTS.MOST_VIEWED}
+        />
+
+        <LatestArticlesSection
+          title="Most Liked"
+          href="/articles?sort=-likeCount"
+          sort={READING_SORTS.MOST_LIKED}
+        />
       </div>
     </Container>
   );

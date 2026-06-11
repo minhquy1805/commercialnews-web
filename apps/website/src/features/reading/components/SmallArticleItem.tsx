@@ -1,27 +1,32 @@
 import Link from "next/link";
-import type { ArticleSummary } from "@/features/reading/types/article";
+import type { ArticleListItemResponse } from "@/features/reading/types/reading.types";
 import { formatCompactNumber } from "@/features/reading/utils/formatCompactNumber";
 
 type SmallArticleItemProps = {
-  article: ArticleSummary;
+  article: ArticleListItemResponse;
 };
 
 export function SmallArticleItem({ article }: SmallArticleItemProps) {
   return (
     <article className="border-b border-slate-100 pb-5 last:border-b-0 last:pb-0">
       <p className="text-xs font-semibold uppercase tracking-wide text-blue-600">
-        {article.category}
+        {article.categoryName ?? "General"}
       </p>
 
       <h3 className="mt-2 text-base font-bold leading-6 text-slate-950">
-        <Link href={article.href} className="transition hover:text-blue-600">
+        <Link
+          href={`/articles/${article.slug}`}
+          className="transition hover:text-blue-600"
+        >
           {article.title}
         </Link>
       </h3>
 
-      <p className="mt-2 text-sm leading-6 text-slate-600">
-        {article.summary}
-      </p>
+      {article.summary ? (
+        <p className="mt-2 text-sm leading-6 text-slate-600">
+          {article.summary}
+        </p>
+      ) : null}
 
       <div className="mt-3 flex items-center gap-4 text-xs font-semibold text-slate-500">
         <span className="inline-flex items-center gap-1.5">
@@ -45,7 +50,7 @@ export function SmallArticleItem({ article }: SmallArticleItemProps) {
             />
           </svg>
 
-          {formatCompactNumber(article.views)} views
+          {formatCompactNumber(article.counters.views)} views
         </span>
 
         <span className="inline-flex items-center gap-1.5">
@@ -64,7 +69,7 @@ export function SmallArticleItem({ article }: SmallArticleItemProps) {
             />
           </svg>
 
-          {formatCompactNumber(article.likes)} likes
+          {formatCompactNumber(article.counters.likes)} likes
         </span>
       </div>
     </article>

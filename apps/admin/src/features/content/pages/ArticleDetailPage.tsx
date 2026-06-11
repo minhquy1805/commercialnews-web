@@ -81,6 +81,7 @@ import type {
   AdminArticleRevisionListItem,
   AdminArticleTagItem,
 } from "../types/adminArticle.types";
+import type { AdminTagListItem } from "../types/adminTag.types";
 
 type EditArticleFormValues = {
   categoryId?: number | null;
@@ -199,6 +200,7 @@ function getCoverMediaColumns(): TableProps<AdminMediaAsset>["columns"] {
 }
 
 function getArticleTagColumns(
+  tagsById: ReadonlyMap<number, AdminTagListItem>,
   usersById: AuthorizationAuditUsersById,
   isFetchingUsers: boolean,
 ): TableProps<AdminArticleTagItem>["columns"] {
@@ -208,16 +210,25 @@ function getArticleTagColumns(
       key: "tag",
       fixed: "left",
       width: 280,
-      render: (_, tag) => (
-        <div style={{ minWidth: 0, maxWidth: 230 }}>
-          <Typography.Text strong style={wrappingTextStyle}>
-            {tag.tagName}
-          </Typography.Text>
-          <Typography.Text type="secondary" style={wrappingTextStyle}>
-            {tag.tagNameNormalized}
-          </Typography.Text>
-        </div>
-      ),
+      render: (_, tag) => {
+        const tagDetails = tagsById.get(tag.tagId);
+        const tagName = tag.tagName || tagDetails?.name;
+        const normalizedName =
+          tag.tagNameNormalized || tagDetails?.nameNormalized;
+
+        return (
+          <div style={{ minWidth: 0, maxWidth: 230 }}>
+            <Tag color="blue" style={{ marginInlineEnd: 0 }}>
+              {tagName || `Tag #${tag.tagId}`}
+            </Tag>
+            <Typography.Text type="secondary" style={wrappingTextStyle}>
+              {normalizedName
+                ? `${normalizedName} · ID ${tag.tagId}`
+                : `ID ${tag.tagId}`}
+            </Typography.Text>
+          </div>
+        );
+      },
     },
     {
       title: "Attached at",
@@ -497,7 +508,15 @@ export function ArticleDetailPage() {
       })),
     [tagsQuery.data?.items],
   );
+  const tagsById = useMemo(
+    () =>
+      new Map(
+        (tagsQuery.data?.items ?? []).map((tag) => [tag.tagId, tag]),
+      ),
+    [tagsQuery.data?.items],
+  );
   const articleTagColumns = getArticleTagColumns(
+    tagsById,
     auditUsersQuery.usersById,
     auditUsersQuery.isFetching,
   );
@@ -1005,13 +1024,17 @@ export function ArticleDetailPage() {
         <Typography.Text style={preWrapTextStyle}>{article.body}</Typography.Text>
       </Card>
 
-      <Card title="Tags" style={{ marginTop: 16 }}>
+      <Card style={{ marginTop: 16 }}>
         <Table<AdminArticleTagItem>
           bordered
           rowKey={(tag) => String(tag.tagId)}
           columns={articleTagColumns}
           dataSource={articleTagsQuery.data ?? []}
-          loading={articleTagsQuery.isFetching || auditUsersQuery.isFetching}
+          loading={
+            articleTagsQuery.isFetching ||
+            tagsQuery.isFetching ||
+            auditUsersQuery.isFetching
+          }
           scroll={{ x: 710 }}
           locale={{
             emptyText: articleTagsQuery.isError

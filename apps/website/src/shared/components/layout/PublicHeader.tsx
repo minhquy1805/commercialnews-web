@@ -8,14 +8,12 @@ import { HeaderSearch } from "./HeaderSearch";
 import { HeaderUserMenu } from "./HeaderUserMenu";
 import { usePublicHeaderState } from "./hooks/usePublicHeaderState";
 import { useCurrentUser } from "@/features/auth/hooks/useCurrentUser";
+import { READING_SORTS } from "@/features/reading/constants/readingSorts";
+import { useHeaderArticleCategories } from "@/features/reading/hooks/useHeaderArticleCategories";
 
-const categories = [
-  { label: "Technology", href: "/articles?category=technology" },
-  { label: "Business", href: "/articles?category=business" },
-  { label: "Cloud", href: "/articles?category=cloud" },
-  { label: "Security", href: "/articles?category=security" },
-  { label: "AI", href: "/articles?category=ai" },
-];
+function getCategoryHref(categoryId: number) {
+  return `/articles?categoryId=${categoryId}&sort=${READING_SORTS.LATEST}`;
+}
 
 export function PublicHeader() {
   const {
@@ -30,6 +28,7 @@ export function PublicHeader() {
     toggleMobileCategories,
     handleDesktopSearchOpenChange,
   } = usePublicHeaderState();
+
   const desktopCategoriesRef = useRef<HTMLDivElement>(null);
 
   useDismissible(
@@ -39,6 +38,12 @@ export function PublicHeader() {
   );
 
   const { currentUser, isLoading: isCurrentUserLoading } = useCurrentUser();
+
+  const {
+    categories,
+    isLoading: isCategoriesLoading,
+    isError: isCategoriesError,
+  } = useHeaderArticleCategories();
 
   return (
     <header className="border-b border-slate-200 bg-white">
@@ -83,7 +88,7 @@ export function PublicHeader() {
 
           <div className="hidden lg:flex lg:flex-1 lg:justify-center lg:gap-x-12">
             <Link
-              href="/articles"
+              href={`/articles?sort=${READING_SORTS.LATEST}`}
               className="text-sm/6 font-semibold text-slate-900 transition hover:text-blue-600"
             >
               Latest
@@ -118,16 +123,30 @@ export function PublicHeader() {
               {isDesktopCategoriesOpen && (
                 <div className="absolute left-1/2 top-full z-50 mt-3 w-screen max-w-xs -translate-x-1/2 overflow-hidden rounded-2xl bg-white shadow-lg outline outline-1 outline-slate-900/5">
                   <div className="p-2">
-                    {categories.map((category) => (
-                      <Link
-                        key={category.href}
-                        href={category.href}
-                        onClick={closeDesktopCategories}
-                        className="block rounded-xl px-4 py-3 text-sm/6 font-semibold text-slate-900 transition hover:bg-slate-50 hover:text-blue-600"
-                      >
-                        {category.label}
-                      </Link>
-                    ))}
+                    {isCategoriesLoading ? (
+                      <p className="rounded-xl px-4 py-3 text-sm/6 font-semibold text-slate-500">
+                        Loading categories...
+                      </p>
+                    ) : isCategoriesError ? (
+                      <p className="rounded-xl px-4 py-3 text-sm/6 font-semibold text-red-600">
+                        Could not load categories.
+                      </p>
+                    ) : categories.length > 0 ? (
+                      categories.map((category) => (
+                        <Link
+                          key={category.categoryId}
+                          href={getCategoryHref(category.categoryId)}
+                          onClick={closeDesktopCategories}
+                          className="block rounded-xl px-4 py-3 text-sm/6 font-semibold text-slate-900 transition hover:bg-slate-50 hover:text-blue-600"
+                        >
+                          {category.categoryName}
+                        </Link>
+                      ))
+                    ) : (
+                      <p className="rounded-xl px-4 py-3 text-sm/6 font-semibold text-slate-500">
+                        No categories found.
+                      </p>
+                    )}
                   </div>
                 </div>
               )}
@@ -210,7 +229,7 @@ export function PublicHeader() {
               <div className="-my-6 divide-y divide-slate-500/10">
                 <div className="space-y-2 py-6">
                   <Link
-                    href="/articles"
+                    href={`/articles?sort=${READING_SORTS.LATEST}`}
                     onClick={closeMobileMenu}
                     className="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-slate-900 transition hover:bg-slate-50 hover:text-blue-600"
                   >
@@ -243,16 +262,30 @@ export function PublicHeader() {
 
                     {isMobileCategoriesOpen && (
                       <div className="mt-2 space-y-2">
-                        {categories.map((category) => (
-                          <Link
-                            key={category.href}
-                            href={category.href}
-                            onClick={closeMobileMenu}
-                            className="block rounded-lg py-2 pr-3 pl-6 text-sm/7 font-semibold text-slate-900 transition hover:bg-slate-50 hover:text-blue-600"
-                          >
-                            {category.label}
-                          </Link>
-                        ))}
+                        {isCategoriesLoading ? (
+                          <p className="block rounded-lg py-2 pr-3 pl-6 text-sm/7 font-semibold text-slate-500">
+                            Loading categories...
+                          </p>
+                        ) : isCategoriesError ? (
+                          <p className="block rounded-lg py-2 pr-3 pl-6 text-sm/7 font-semibold text-red-600">
+                            Could not load categories.
+                          </p>
+                        ) : categories.length > 0 ? (
+                          categories.map((category) => (
+                            <Link
+                              key={category.categoryId}
+                              href={getCategoryHref(category.categoryId)}
+                              onClick={closeMobileMenu}
+                              className="block rounded-lg py-2 pr-3 pl-6 text-sm/7 font-semibold text-slate-900 transition hover:bg-slate-50 hover:text-blue-600"
+                            >
+                              {category.categoryName}
+                            </Link>
+                          ))
+                        ) : (
+                          <p className="block rounded-lg py-2 pr-3 pl-6 text-sm/7 font-semibold text-slate-500">
+                            No categories found.
+                          </p>
+                        )}
                       </div>
                     )}
                   </div>

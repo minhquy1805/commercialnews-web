@@ -18,12 +18,16 @@ import { type CSSProperties, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "../../../shared/constants/routes";
 import { createTablePagination } from "../../../shared/pagination";
-import { getApiErrorDescription } from "../../../shared/api/apiError";
+import {
+  getApiErrorDescription,
+  getApiErrorMessage,
+} from "../../../shared/api/apiError";
 import {
   AuthorizationAuditUser,
   type AuthorizationAuditUsersById,
 } from "../../authorization/components/AuthorizationAuditUser";
 import { useAdminUsers } from "../../identity/hooks/useAdminUsers";
+import { useAttachMediaToArticle } from "../../media/hooks/article-media/useAttachMediaToArticle";
 import {
   ArticleStatusColors,
   ArticleStatusLabels,
@@ -236,6 +240,7 @@ export function ArticlesPage() {
     pageSize: 100,
   });
   const createArticleMutation = useCreateAdminArticle();
+  const attachMediaToArticleMutation = useAttachMediaToArticle();
   const categoryOptions = useMemo(
     () =>
       (categoriesQuery.data?.items ?? []).map((category) => ({
@@ -303,17 +308,42 @@ export function ArticlesPage() {
 
   async function handleCreateArticle() {
     const values = await createForm.validateFields();
+    const coverMediaId = values.coverMediaId ?? null;
 
     try {
-      await createArticleMutation.mutateAsync({
+      const createdArticle = await createArticleMutation.mutateAsync({
         categoryId: values.categoryId ?? null,
         authorUserId: values.authorUserId,
         title: values.title.trim(),
         summary: values.summary?.trim() || null,
         body: values.body.trim(),
-        coverMediaId: values.coverMediaId ?? null,
+        coverMediaId,
         tagIds: values.tagIds ?? [],
       });
+
+      if (coverMediaId) {
+        try {
+          await attachMediaToArticleMutation.mutateAsync({
+            articleId: createdArticle.articleId,
+            request: {
+              mediaId: coverMediaId,
+              isPrimary: true,
+            },
+          });
+        } catch (error) {
+          notification.warning({
+            title: "Article created, but cover was not attached as primary.",
+            description: getApiErrorMessage(
+              error,
+              "Could not attach cover media to article media.",
+            ),
+            placement: "topRight",
+          });
+          setPage(1);
+          closeCreateModal();
+          return;
+        }
+      }
 
       notification.success({
         title: "Article created",
@@ -471,7 +501,10 @@ export function ArticlesPage() {
         open={isCreateModalOpen}
         okText="Create"
         width={760}
-        confirmLoading={createArticleMutation.isPending}
+        confirmLoading={
+          createArticleMutation.isPending ||
+          attachMediaToArticleMutation.isPending
+        }
         onOk={handleCreateArticle}
         onCancel={closeCreateModal}
         forceRender
@@ -549,12 +582,18 @@ export function ArticlesPage() {
             <Input.TextArea autoSize={{ minRows: 8, maxRows: 18 }} />
           </Form.Item>
 
-          <Space size={12} style={{ width: "100%" }} align="start">
-            <Form.Item label="Cover media ID" name="coverMediaId" style={{ flex: 1 }}>
+          <div
+            style={{
+              display: "grid",
+              gap: 12,
+              gridTemplateColumns: "180px 360px",
+            }}
+          >
+            <Form.Item label="Cover media ID" name="coverMediaId">
               <InputNumber min={1} precision={0} style={{ width: "100%" }} />
             </Form.Item>
 
-            <Form.Item label="Tags" name="tagIds" style={{ flex: 2 }}>
+            <Form.Item label="Tags" name="tagIds">
               <Select<number[]>
                 allowClear
                 mode="multiple"
@@ -562,9 +601,10 @@ export function ArticlesPage() {
                 placeholder="Select tags"
                 loading={tagsQuery.isFetching}
                 options={tagOptions}
+                style={{ width: "100%" }}
               />
             </Form.Item>
-          </Space>
+          </div>
         </Form>
       </Modal>
     </section>
