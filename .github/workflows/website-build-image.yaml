@@ -1,0 +1,49 @@
+name: Website Build Image
+
+on:
+  push:
+    tags:
+      - "website-v*"
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  IMAGE_NAME: ghcr.io/minhquy1805/commercialnews-website
+
+jobs:
+  build-website-image:
+    name: Build Website Image
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Validate website tag
+        run: |
+          if [[ "${GITHUB_REF_NAME}" != website-v* ]]; then
+            echo "Invalid tag for website build: ${GITHUB_REF_NAME}"
+            exit 1
+          fi
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push website image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/website/Dockerfile
+          push: true
+          tags: |
+            ${{ env.IMAGE_NAME }}:${{ github.ref_name }}
+            ${{ env.IMAGE_NAME }}:sha-${{ github.sha }}

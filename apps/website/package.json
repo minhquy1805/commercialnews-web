@@ -5,12 +5,14 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -p 3000",
     "lint": "eslint"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
     "@tailwindplus/elements": "^1.0.22",
+    "@tanstack/react-query": "^5.101.0",
+    "axios": "^1.17.0",
     "clsx": "^2.1.1",
     "dayjs": "^1.11.20",
     "next": "^16.2.7",
