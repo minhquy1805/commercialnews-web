@@ -1,0 +1,91 @@
+name: Website Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      website_version:
+        description: "Website image version, example: website-v1.0.0"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-website:
+    name: Deploy Website
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Validate input
+        id: version
+        shell: bash
+        run: |
+          VERSION="${{ inputs.website_version }}"
+
+          if [[ ! "$VERSION" =~ ^website-v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Invalid website version: $VERSION"
+            echo "Expected format: website-vX.Y.Z, example: website-v1.0.0"
+            exit 1
+          fi
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Resolved website version: $VERSION"
+
+      - name: Prepare SSH
+        shell: bash
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VM_SSH_KEY }}" > ~/.ssh/commercialnews_vm_key
+          chmod 600 ~/.ssh/commercialnews_vm_key
+          ssh-keyscan -H "${{ secrets.VM_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Deploy website on VM
+        shell: bash
+        run: |
+          WEBSITE_VERSION="${{ steps.version.outputs.version }}"
+
+          ssh -i ~/.ssh/commercialnews_vm_key "${{ secrets.VM_USER }}@${{ secrets.VM_HOST }}" \
+            "WEBSITE_VERSION='$WEBSITE_VERSION' bash -s" << 'EOF'
+          set -e
+
+          cd "${{ secrets.VM_DEPLOY_PATH }}"
+
+          echo "Pull latest deploy config"
+          git fetch origin
+          git reset --hard origin/main
+
+          echo "Set WEBSITE_IMAGE_VERSION=$WEBSITE_VERSION"
+          if grep -q '^WEBSITE_IMAGE_VERSION=' .env.prod; then
+            sed -i "s/^WEBSITE_IMAGE_VERSION=.*/WEBSITE_IMAGE_VERSION=$WEBSITE_VERSION/" .env.prod
+          else
+            echo "WEBSITE_IMAGE_VERSION=$WEBSITE_VERSION" >> .env.prod
+          fi
+
+          echo "Validate docker compose"
+          docker compose --env-file .env.prod -f docker-compose.prod.yaml config > /tmp/commercialnews-compose-check.yaml
+
+          echo "Pull website image"
+          docker compose --env-file .env.prod -f docker-compose.prod.yaml pull commercialnews-website
+
+          echo "Up website service"
+          docker compose --env-file .env.prod -f docker-compose.prod.yaml up -d commercialnews-website
+
+          echo "Up nginx service"
+          docker compose --env-file .env.prod -f docker-compose.prod.yaml up -d nginx
+
+          echo "Wait for services"
+          sleep 10
+
+          echo "Check website container image"
+          docker inspect commercialnews-website --format='{{.Config.Image}}'
+
+          echo "Check website inside Docker network"
+          docker exec commercialnews-nginx wget -q -O- http://commercialnews-website:3000 > /tmp/commercialnews-website-check.html
+
+          echo "Check public HTTP website"
+          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS -I http://minhquy.dev
+          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS -I http://www.minhquy.dev
+
+          echo "Website deployment completed."
+          EOF
