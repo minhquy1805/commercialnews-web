@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import type { ChangeEventHandler, SubmitEventHandler } from "react";
 import { useRouter } from "next/navigation";
 
 type UseHeaderSearchOptions = {
@@ -14,15 +13,18 @@ export function useHeaderSearch({
   isOpen,
   onOpenChange,
   onSearchSubmitted,
-}: UseHeaderSearchOptions) {
+}: UseHeaderSearchOptions = {}) {
   const router = useRouter();
+
   const [keyword, setKeyword] = useState("");
-  const [isInternalSearchOpen, setIsInternalSearchOpen] = useState(false);
-  const isSearchOpen = isOpen ?? isInternalSearchOpen;
+  const [internalIsSearchOpen, setInternalIsSearchOpen] = useState(false);
+
+  const isControlled = typeof isOpen === "boolean";
+  const isSearchOpen = isControlled ? isOpen : internalIsSearchOpen;
 
   const setSearchOpen = (nextIsOpen: boolean) => {
-    if (isOpen === undefined) {
-      setIsInternalSearchOpen(nextIsOpen);
+    if (!isControlled) {
+      setInternalIsSearchOpen(nextIsOpen);
     }
 
     onOpenChange?.(nextIsOpen);
@@ -36,25 +38,32 @@ export function useHeaderSearch({
     setSearchOpen(!isSearchOpen);
   };
 
-  const handleKeywordChange: ChangeEventHandler<HTMLInputElement> = (event) => {
+  const handleKeywordChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     setKeyword(event.target.value);
   };
 
-  const handleSubmit: SubmitEventHandler<HTMLFormElement> = (event) => {
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     const trimmedKeyword = keyword.trim();
 
     if (!trimmedKeyword) {
-      router.push("/search");
-      onSearchSubmitted?.();
-      closeSearch();
       return;
     }
 
-    router.push(`/search?query=${encodeURIComponent(trimmedKeyword)}`);
-    onSearchSubmitted?.();
+    const params = new URLSearchParams({
+      keyword: trimmedKeyword,
+      sort: "-publishedAt",
+      page: "1",
+    });
+
+    router.push(`/articles?${params.toString()}`);
+
+    setKeyword("");
     closeSearch();
+    onSearchSubmitted?.();
   };
 
   return {

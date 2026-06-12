@@ -152,7 +152,7 @@ export function ArticleDetailContent({ article }: ArticleDetailContentProps) {
         <div className="mt-9 flex flex-wrap gap-2 border-t border-slate-200 pt-6">
           {article.tags.map((tag) => (
             <Link
-              key={tag.tagPublicId}
+              key={tag.tagPublicId ?? tag.tagId}
               href={`/articles?tagId=${tag.tagId}&sort=-publishedAt`}
               className="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
             >

@@ -32,9 +32,9 @@ export type ArticleListItemResponse = {
 
 export type ArticleTagResponse = {
   tagId: number;
-  tagPublicId: string;
+  tagPublicId: string | null;
   name: string;
-  slug: string;
+  slug: string | null;
 };
 
 export type ArticleMediaResponse = {

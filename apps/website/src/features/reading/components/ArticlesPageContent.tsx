@@ -63,6 +63,9 @@ export function ArticlesPageContent() {
   const page = parsePositiveNumber(searchParams.get("page"), 1);
   const categoryId = parsePositiveNumber(searchParams.get("categoryId"), 0);
   const normalizedCategoryId = categoryId > 0 ? categoryId : null;
+  const tagId = parsePositiveNumber(searchParams.get("tagId"), 0);
+  const normalizedTagId = tagId > 0 ? tagId : null;
+  const keyword = searchParams.get("keyword")?.trim() || null;
 
   const sortParam = searchParams.get("sort");
   const sort = isReadingSort(sortParam) ? sortParam : DEFAULT_READING_SORT;
@@ -72,6 +75,8 @@ export function ArticlesPageContent() {
     pageSize: ARTICLE_PAGE_SIZE,
     sort,
     categoryId: normalizedCategoryId,
+    tagId: normalizedTagId,
+    keyword,
   });
 
   const articles = articlesQuery.data?.items ?? [];
@@ -100,6 +105,8 @@ export function ArticlesPageContent() {
       sort: event.target.value,
       page: "1",
       categoryId: normalizedCategoryId ? String(normalizedCategoryId) : null,
+      tagId: normalizedTagId ? String(normalizedTagId) : null,
+      keyword,
     });
   };
 
@@ -108,6 +115,8 @@ export function ArticlesPageContent() {
       page: String(nextPage),
       sort,
       categoryId: normalizedCategoryId ? String(normalizedCategoryId) : null,
+      tagId: normalizedTagId ? String(normalizedTagId) : null,
+      keyword,
     });
   };
 
@@ -120,12 +129,13 @@ export function ArticlesPageContent() {
           </p>
 
           <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">
-            Articles
+            {keyword ? `Search results for "${keyword}"` : "Articles"}
           </h1>
 
           <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
-            Browse the latest stories about technology, business, cloud,
-            security, and artificial intelligence.
+            {keyword
+              ? "Browse articles matching your search keyword."
+              : "Browse the latest stories about technology, business, cloud, security, and artificial intelligence."}
           </p>
         </div>
 
